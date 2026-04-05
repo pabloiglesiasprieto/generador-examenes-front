@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Generador Examenes",
+    "slug": "generador-examenes-front",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0D0D1A"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.proyecto.generadorexamenes"
+    },
+    "android": {
+      "package": "com.proyecto.generadorexamenes"
+    },
+    "plugins": []
+  }
+}

@@ -1,0 +1,84 @@
+diff --git a/node_modules/event-target-shim/dist/event-target-shim.js b/node_modules/event-target-shim/dist/event-target-shim.js
+index 53ce220..44804fc 100644
+--- a/node_modules/event-target-shim/dist/event-target-shim.js
++++ b/node_modules/event-target-shim/dist/event-target-shim.js
+@@ -155,33 +155,25 @@ Event.prototype = {
+      * Constant of NONE.
+      * @type {number}
+      */
+-    get NONE() {
+-        return 0
+-    },
++    NONE: 0,
+ 
+     /**
+      * Constant of CAPTURING_PHASE.
+      * @type {number}
+      */
+-    get CAPTURING_PHASE() {
+-        return 1
+-    },
++    CAPTURING_PHASE: 1,
+ 
+     /**
+      * Constant of AT_TARGET.
+      * @type {number}
+      */
+-    get AT_TARGET() {
+-        return 2
+-    },
++    AT_TARGET: 2,
+ 
+     /**
+      * Constant of BUBBLING_PHASE.
+      * @type {number}
+      */
+-    get BUBBLING_PHASE() {
+-        return 3
+-    },
++    BUBBLING_PHASE: 3,
+ 
+     /**
+      * The target of this event.
+diff --git a/node_modules/event-target-shim/dist/event-target-shim.mjs b/node_modules/event-target-shim/dist/event-target-shim.mjs
+index 114f3a1..639228c 100644
+--- a/node_modules/event-target-shim/dist/event-target-shim.mjs
++++ b/node_modules/event-target-shim/dist/event-target-shim.mjs
+@@ -151,33 +151,25 @@ Event.prototype = {
+      * Constant of NONE.
+      * @type {number}
+      */
+-    get NONE() {
+-        return 0
+-    },
++    NONE: 0,
+ 
+     /**
+      * Constant of CAPTURING_PHASE.
+      * @type {number}
+      */
+-    get CAPTURING_PHASE() {
+-        return 1
+-    },
++    CAPTURING_PHASE: 1,
+ 
+     /**
+      * Constant of AT_TARGET.
+      * @type {number}
+      */
+-    get AT_TARGET() {
+-        return 2
+-    },
++    AT_TARGET: 2,
+ 
+     /**
+      * Constant of BUBBLING_PHASE.
+      * @type {number}
+      */
+-    get BUBBLING_PHASE() {
+-        return 3
+-    },
++    BUBBLING_PHASE: 3,
+ 
+     /**
+      * The target of this event.

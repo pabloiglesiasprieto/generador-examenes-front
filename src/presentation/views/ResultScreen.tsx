@@ -99,6 +99,17 @@ export default function ResultScreen({ navigation, route }: Props) {
               <Text style={styles.statNumber}>#{resultado.intento}</Text>
               <Text style={styles.statLabel}>Intento</Text>
             </View>
+            {resultado.tiempo_segundos != null && (
+              <>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>
+                    {Math.floor(resultado.tiempo_segundos / 60)}:{String(resultado.tiempo_segundos % 60).padStart(2, '0')}
+                  </Text>
+                  <Text style={styles.statLabel}>Tiempo</Text>
+                </View>
+              </>
+            )}
           </View>
         </Animated.View>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { GameStackParamList } from '../navigation/AppNavigator';
 import { useExamSession } from '../viewmodels/useExamSession';
 import { ResultadoDTO } from '../../domain/entities/Examen';
+import { container } from '../../infrastructure/config/container';
+import { TYPES } from '../../infrastructure/config/types';
+import { IIniciarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Exam'>;
 
@@ -29,60 +32,89 @@ function confirmQuit(onConfirm: () => void) {
 
 function ExamFooterButton({
   session,
+  isAdminMode,
   onSubmit,
   onClose,
 }: Readonly<{
   session: ReturnType<typeof useExamSession>;
+  isAdminMode: boolean;
   onSubmit: () => void;
   onClose: () => void;
 }>) {
-  const showClose = session.isReadOnly && session.isLast;
-  const showReadOnlyNext = session.isReadOnly && !session.isLast;
-  const showSubmit = !session.isReadOnly && session.isLast;
-  const showNext = !session.isReadOnly && !session.isLast;
+  if (isAdminMode) {
+    return (
+      <TouchableOpacity style={[styles.btn, styles.btnClose]} onPress={onClose}>
+        <Text style={styles.btnText}>{session.isLast ? 'Cerrar' : 'Siguiente →'}</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  if (session.isLast) {
+    return (
+      <TouchableOpacity
+        style={[styles.btn, styles.btnSubmit, session.submitting && styles.btnDisabled]}
+        onPress={onSubmit}
+        disabled={session.submitting}
+      >
+        {session.submitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.btnText}>Enviar examen 🚀</Text>
+        )}
+      </TouchableOpacity>
+    );
+  }
 
   return (
-    <>
-      {showClose && (
-        <TouchableOpacity style={[styles.btn, styles.btnSubmit]} onPress={onClose}>
-          <Text style={styles.btnText}>Cerrar</Text>
-        </TouchableOpacity>
-      )}
-      {showReadOnlyNext && (
-        <TouchableOpacity style={styles.btn} onPress={session.goNext}>
-          <Text style={styles.btnText}>Siguiente →</Text>
-        </TouchableOpacity>
-      )}
-      {showSubmit && (
-        <TouchableOpacity
-          style={[styles.btn, styles.btnSubmit, session.submitting && styles.btnDisabled]}
-          onPress={onSubmit}
-          disabled={session.submitting}
-        >
-          {session.submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>Enviar examen 🚀</Text>
-          )}
-        </TouchableOpacity>
-      )}
-      {showNext && (
-        <TouchableOpacity
-          style={[styles.btn, !session.hasAnswered && styles.btnMuted]}
-          onPress={session.goNext}
-        >
-          <Text style={styles.btnText}>Siguiente →</Text>
-        </TouchableOpacity>
-      )}
-    </>
+    <TouchableOpacity
+      style={[styles.btn, !session.hasAnswered && styles.btnMuted]}
+      onPress={session.goNext}
+    >
+      <Text style={styles.btnText}>Siguiente →</Text>
+    </TouchableOpacity>
   );
 }
 
-export default function ExamScreen({ navigation, route }: Readonly<Props>) {
-  const { examen } = route.params;
-  const session = useExamSession(examen);
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+  const s = (seconds % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
 
-  const handleQuit = () => confirmQuit(() => navigation.goBack());
+export default function ExamScreen({ navigation, route }: Readonly<Props>) {
+  const { examen, isAdminMode = false } = route.params;
+  const session = useExamSession(examen, isAdminMode);
+
+  const iniciarExamenUseCase = container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase);
+
+  // Registrar inicio en backend (solo para alumnos, para calcular tiempo_segundos)
+  useEffect(() => {
+    if (!isAdminMode) {
+      iniciarExamenUseCase.execute(examen.id).catch(() => {});
+    }
+  }, [examen.id, isAdminMode]);
+
+  // Auto-submit cuando expira el tiempo
+  useEffect(() => {
+    if (session.isExpired && !session.isReadOnly) {
+      session.submitAnswers((resultado, examenId) => {
+        navigation.replace('Result', { resultado: resultado as ResultadoDTO, examenId });
+      });
+    }
+  }, [session.isExpired, session.isReadOnly, session.submitAnswers]);
+
+  const handleQuit = () => {
+    if (isAdminMode) {
+      navigation.goBack();
+    } else {
+      confirmQuit(() => navigation.goBack());
+    }
+  };
+
+  const handleAdminNext = () => {
+    if (!session.isLast) session.goNext();
+    else navigation.goBack();
+  };
 
   const handleSubmitSuccess = (resultado: unknown, examenId: number) => {
     navigation.replace('Result', { resultado: resultado as ResultadoDTO, examenId });
@@ -102,12 +134,22 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
         <>
           <View style={styles.header}>
             <TouchableOpacity onPress={handleQuit}>
-              <Text style={styles.quitText}>✕ Salir</Text>
+              <Text style={styles.quitText}>{isAdminMode ? '← Volver' : '✕ Salir'}</Text>
             </TouchableOpacity>
             <Text style={styles.counter}>
               {session.currentIndex + 1} / {session.totalPreguntas}
             </Text>
-            <View style={{ width: 60 }} />
+            {isAdminMode ? (
+              <View style={styles.adminBadge}>
+                <Text style={styles.adminBadgeText}>👁 Vista admin</Text>
+              </View>
+            ) : session.timeRemaining != null ? (
+              <Text style={[styles.timerText, session.timeRemaining < 60 && styles.timerWarning]}>
+                ⏱ {formatTime(session.timeRemaining)}
+              </Text>
+            ) : (
+              <View style={{ width: 80 }} />
+            )}
           </View>
 
           <View style={styles.progressTrack}>
@@ -127,17 +169,42 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
             <View style={styles.answersContainer}>
               {session.currentPregunta.respuestas.map((resp, i) => {
                 const selected = session.currentSelected.has(i);
+                const respId = resp.respuesta_id ?? resp.id;
+                const isCorrect = isAdminMode && respId != null && (session.currentPregunta.respuestas_correctas?.includes(respId) ?? false);
+                const isWrong = isAdminMode && respId != null && !(session.currentPregunta.respuestas_correctas?.includes(respId) ?? false);
+
                 return (
                   <TouchableOpacity
                     key={`${session.currentIndex}-resp-${i}`}
-                    style={[styles.answerCard, selected && styles.answerCardSelected]}
+                    style={[
+                      styles.answerCard,
+                      !isAdminMode && selected && styles.answerCardSelected,
+                      isCorrect && styles.answerCardCorrect,
+                      isWrong && styles.answerCardWrong,
+                    ]}
                     onPress={() => session.toggleAnswer(i)}
-                    activeOpacity={0.75}
+                    activeOpacity={isAdminMode ? 1 : 0.75}
                   >
-                    <View style={[styles.answerIndicator, selected && styles.answerIndicatorSelected]}>
-                      {selected && <Text style={styles.indicatorCheck}>✓</Text>}
+                    <View
+                      style={[
+                        styles.answerIndicator,
+                        !isAdminMode && selected && styles.answerIndicatorSelected,
+                        isCorrect && styles.answerIndicatorCorrect,
+                        isWrong && styles.answerIndicatorWrong,
+                      ]}
+                    >
+                      {isCorrect && <Text style={styles.indicatorCheck}>✓</Text>}
+                      {isWrong && <Text style={styles.indicatorCheck}>✗</Text>}
+                      {!isAdminMode && selected && <Text style={styles.indicatorCheck}>✓</Text>}
                     </View>
-                    <Text style={[styles.answerText, selected && styles.answerTextSelected]}>
+                    <Text
+                      style={[
+                        styles.answerText,
+                        !isAdminMode && selected && styles.answerTextSelected,
+                        isCorrect && styles.answerTextCorrect,
+                        isWrong && styles.answerTextWrong,
+                      ]}
+                    >
                       {resp.texto}
                     </Text>
                   </TouchableOpacity>
@@ -149,8 +216,9 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
           <View style={styles.footer}>
             <ExamFooterButton
               session={session}
+              isAdminMode={isAdminMode}
               onSubmit={() => session.confirmSubmit(handleSubmitSuccess)}
-              onClose={() => navigation.goBack()}
+              onClose={handleAdminNext}
             />
           </View>
         </>
@@ -173,6 +241,17 @@ const styles = StyleSheet.create({
   },
   quitText: { color: '#EF4444', fontSize: 14, fontWeight: '600' },
   counter: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  timerText: { color: '#94A3B8', fontSize: 14, fontWeight: '700', minWidth: 60, textAlign: 'right' },
+  timerWarning: { color: '#EF4444' },
+  adminBadge: {
+    backgroundColor: '#1E3A5F',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#3B82F6',
+  },
+  adminBadgeText: { color: '#93C5FD', fontSize: 12, fontWeight: '700' },
   progressTrack: {
     height: 6,
     backgroundColor: '#2D2D44',
@@ -213,6 +292,8 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   answerCardSelected: { borderColor: '#7C3AED', backgroundColor: 'rgba(124,58,237,0.12)' },
+  answerCardCorrect: { borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.12)' },
+  answerCardWrong: { borderColor: '#374151', backgroundColor: '#1A1A2E' },
   answerIndicator: {
     width: 26,
     height: 26,
@@ -223,9 +304,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   answerIndicatorSelected: { borderColor: '#7C3AED', backgroundColor: '#7C3AED' },
+  answerIndicatorCorrect: { borderColor: '#10B981', backgroundColor: '#10B981' },
+  answerIndicatorWrong: { borderColor: '#374151', backgroundColor: 'transparent' },
   indicatorCheck: { color: '#fff', fontSize: 13, fontWeight: '700' },
   answerText: { color: '#94A3B8', fontSize: 15, flex: 1, lineHeight: 22 },
   answerTextSelected: { color: '#FFFFFF', fontWeight: '600' },
+  answerTextCorrect: { color: '#10B981', fontWeight: '600' },
+  answerTextWrong: { color: '#4B5563', fontWeight: '400' },
   footer: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 12, backgroundColor: '#0D0D1A' },
   btn: {
     backgroundColor: '#7C3AED',
@@ -239,6 +324,7 @@ const styles = StyleSheet.create({
   },
   btnMuted: { backgroundColor: '#2D2D44', shadowOpacity: 0 },
   btnSubmit: { backgroundColor: '#10B981', shadowColor: '#10B981' },
+  btnClose: { backgroundColor: '#3B82F6', shadowColor: '#3B82F6' },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   backBtn: {

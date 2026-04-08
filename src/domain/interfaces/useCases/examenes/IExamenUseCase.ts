@@ -1,4 +1,5 @@
-import { ExamenDTO, ResultadoDTO, RespuestaAlumnoDTO } from '../../../entities/Examen';
+import { EstadisticaAlumnoDTO, EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../../entities/Estadistica';
+import { ExamenDTO, InicioExamenDTO, ResultadoDTO, RespuestaAlumnoDTO } from '../../../entities/Examen';
 
 export interface IGetExamenesUseCase {
   execute(sortBy?: string, order?: string): Promise<ExamenDTO[]>;
@@ -9,7 +10,11 @@ export interface IGetExamenByIdUseCase {
 }
 
 export interface ICreateExamenUseCase {
-  execute(): Promise<ExamenDTO>;
+  execute(duracionMinutos?: number): Promise<ExamenDTO>;
+}
+
+export interface IIniciarExamenUseCase {
+  execute(id: number): Promise<InicioExamenDTO>;
 }
 
 export interface IDeleteExamenUseCase {
@@ -30,4 +35,16 @@ export interface IGetResultadosAlumnoUseCase {
 
 export interface IExportExamenesUseCase {
   execute(formato: 'excel' | 'pdf'): Promise<ArrayBuffer>;
+}
+
+export interface IGetEstadisticasExamenesUseCase {
+  execute(): Promise<EstadisticaExamenDTO[]>;
+}
+
+export interface IGetRankingAlumnosUseCase {
+  execute(): Promise<EstadisticaAlumnoDTO[]>;
+}
+
+export interface IGetEstadisticasPreguntasUseCase {
+  execute(): Promise<EstadisticaPreguntaDTO[]>;
 }

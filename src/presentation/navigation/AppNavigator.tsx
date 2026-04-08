@@ -15,6 +15,8 @@ import AdminHomeScreen from '../views/AdminHomeScreen';
 import QuestionsScreen from '../views/QuestionsScreen';
 import UsersScreen from '../views/UsersScreen';
 import IncidenciasScreen from '../views/IncidenciasScreen';
+import DashboardScreen from '../views/DashboardScreen';
+import ExamResultsScreen from '../views/ExamResultsScreen';
 
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   GameTab: 'game-controller',
@@ -29,7 +31,7 @@ function TabIcon({ routeName, color, size }: Readonly<{ routeName: string; color
 // ── Param lists ───────────────────────────────────────────────────────────────
 export type GameStackParamList = {
   Map: undefined;
-  Exam: { examen: ExamenDTO };
+  Exam: { examen: ExamenDTO; isAdminMode?: boolean };
   Result: { resultado: ResultadoDTO; examenId: number };
 };
 
@@ -43,6 +45,8 @@ export type AdminStackParamList = {
   Questions: undefined;
   Users: undefined;
   Incidencias: undefined;
+  Dashboard: undefined;
+  ExamResults: { examenId: number };
 };
 
 export type AppTabParamList = {
@@ -87,6 +91,8 @@ function AdminNavigator() {
       <AdminStack.Screen name="Questions" component={QuestionsScreen} />
       <AdminStack.Screen name="Users" component={UsersScreen} />
       <AdminStack.Screen name="Incidencias" component={IncidenciasScreen} />
+      <AdminStack.Screen name="Dashboard" component={DashboardScreen} />
+      <AdminStack.Screen name="ExamResults" component={ExamResultsScreen} />
     </AdminStack.Navigator>
   );
 }

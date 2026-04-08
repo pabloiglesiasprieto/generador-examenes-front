@@ -95,7 +95,12 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
             </View>
           )}
 
-          <Text style={styles.questionCount}>{qCount} preguntas</Text>
+          <View style={styles.metaRow}>
+            <Text style={styles.questionCount}>{qCount} preguntas</Text>
+            {examen.duracion_minutos && (
+              <Text style={styles.timerBadge}>⏱ {examen.duracion_minutos} min</Text>
+            )}
+          </View>
         </View>
 
         {/* Botón eliminar */}
@@ -192,7 +197,9 @@ const styles = StyleSheet.create({
   availableRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   availableDot: { width: 7, height: 7, borderRadius: 4 },
   availableText: { fontSize: 12, fontWeight: '600' },
+  metaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   questionCount: { fontSize: 11, color: '#64748B' },
+  timerBadge: { fontSize: 10, color: '#7C3AED', fontWeight: '700' },
   deleteBtn: {
     position: 'absolute',
     top: 0,

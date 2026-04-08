@@ -8,13 +8,14 @@ import {
   IUpdatePreguntaUseCase,
   IDeletePreguntaUseCase,
 } from '../../interfaces/useCases/preguntas/IPreguntaUseCase';
+import { PageResponse } from '../../entities/Page';
 import { PreguntaDTO, PreguntaInput } from '../../entities/Pregunta';
 
 @injectable()
 export class GetAllPreguntasUseCase implements IGetAllPreguntasUseCase {
   constructor(@inject(TYPES.IPreguntaRepository) private preguntaRepository: IPreguntaRepository) {}
-  execute(sortBy?: string, order?: string): Promise<PreguntaDTO[]> {
-    return this.preguntaRepository.getAllPreguntas(sortBy, order);
+  execute(sortBy?: string, order?: string, page?: number, size?: number): Promise<PreguntaDTO[] | PageResponse<PreguntaDTO>> {
+    return this.preguntaRepository.getAllPreguntas(sortBy, order, page, size);
   }
 }
 

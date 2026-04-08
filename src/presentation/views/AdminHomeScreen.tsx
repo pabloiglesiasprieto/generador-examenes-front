@@ -26,6 +26,14 @@ const OPTIONS: MenuOption[] = [
     color: '#7C3AED',
   },
   {
+    key: 'Dashboard',
+    emoji: '📈',
+    title: 'Estadísticas',
+    subtitle: 'Notas por examen y ranking de alumnos',
+    tag: 'Análisis',
+    color: '#10B981',
+  },
+  {
     key: 'Users',
     emoji: '👥',
     title: 'Usuarios',

@@ -11,6 +11,8 @@ export interface PreguntaDTO {
   es_multiple: boolean;
   respuestas: RespuestaDTO[];
   respuestas_correctas?: number[];
+  dificultad?: string;
+  categoria?: string;
 }
 
 export interface RespuestaInput {
@@ -22,4 +24,6 @@ export interface PreguntaInput {
   enunciado: string;
   es_multiple: boolean;
   respuestas: RespuestaInput[];
+  dificultad?: string;
+  categoria?: string;
 }

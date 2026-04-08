@@ -89,13 +89,17 @@ export default function MapScreen({ navigation }: Props) {
   };
 
   const handleNodePress = (info: ExamNodeInfo) => {
-    navigation.navigate('Exam', { examen: info.examen });
+    if (isProfesor || isAdmin) {
+      navigation.navigate('Exam', { examen: info.examen, isAdminMode: true });
+    } else {
+      navigation.navigate('Exam', { examen: info.examen });
+    }
   };
 
   const handleCreate = async () => {
     setCreating(true);
     try {
-      await createExamenUseCase.execute();
+      await createExamenUseCase.execute(2);
       await loadData();
     } catch (err: unknown) {
       const msg =

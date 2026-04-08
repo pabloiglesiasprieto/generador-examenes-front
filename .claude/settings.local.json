@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/igles/Documents/GitHub/generador-examenes-back/generador-examenes-back-examenes/**)",
+      "Bash(mvn package:*)",
+      "Bash(xargs grep:*)"
+    ]
+  }
+}

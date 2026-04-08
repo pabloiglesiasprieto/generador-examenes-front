@@ -19,6 +19,10 @@ export const TYPES = {
   IGetResultadosExamenUseCase: Symbol.for('IGetResultadosExamenUseCase'),
   IGetResultadosAlumnoUseCase: Symbol.for('IGetResultadosAlumnoUseCase'),
   IExportExamenesUseCase: Symbol.for('IExportExamenesUseCase'),
+  IIniciarExamenUseCase: Symbol.for('IIniciarExamenUseCase'),
+  IGetEstadisticasExamenesUseCase: Symbol.for('IGetEstadisticasExamenesUseCase'),
+  IGetRankingAlumnosUseCase: Symbol.for('IGetRankingAlumnosUseCase'),
+  IGetEstadisticasPreguntasUseCase: Symbol.for('IGetEstadisticasPreguntasUseCase'),
 
   // UseCases - Preguntas
   IGetAllPreguntasUseCase: Symbol.for('IGetAllPreguntasUseCase'),

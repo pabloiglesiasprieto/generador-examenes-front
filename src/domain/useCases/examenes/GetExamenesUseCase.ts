@@ -5,13 +5,18 @@ import {
   IGetExamenesUseCase,
   IGetExamenByIdUseCase,
   ICreateExamenUseCase,
+  IIniciarExamenUseCase,
   IDeleteExamenUseCase,
   IEvaluarExamenUseCase,
   IGetResultadosExamenUseCase,
   IGetResultadosAlumnoUseCase,
   IExportExamenesUseCase,
+  IGetEstadisticasExamenesUseCase,
+  IGetRankingAlumnosUseCase,
+  IGetEstadisticasPreguntasUseCase,
 } from '../../interfaces/useCases/examenes/IExamenUseCase';
-import { ExamenDTO, ResultadoDTO, RespuestaAlumnoDTO } from '../../entities/Examen';
+import { EstadisticaAlumnoDTO, EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../entities/Estadistica';
+import { ExamenDTO, InicioExamenDTO, ResultadoDTO, RespuestaAlumnoDTO } from '../../entities/Examen';
 
 @injectable()
 export class GetExamenesUseCase implements IGetExamenesUseCase {
@@ -32,8 +37,16 @@ export class GetExamenByIdUseCase implements IGetExamenByIdUseCase {
 @injectable()
 export class CreateExamenUseCase implements ICreateExamenUseCase {
   constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
-  execute(): Promise<ExamenDTO> {
-    return this.examenRepository.createExamen();
+  execute(duracionMinutos?: number): Promise<ExamenDTO> {
+    return this.examenRepository.createExamen(duracionMinutos);
+  }
+}
+
+@injectable()
+export class IniciarExamenUseCase implements IIniciarExamenUseCase {
+  constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
+  execute(id: number): Promise<InicioExamenDTO> {
+    return this.examenRepository.iniciarExamen(id);
   }
 }
 
@@ -74,5 +87,29 @@ export class ExportExamenesUseCase implements IExportExamenesUseCase {
   constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
   execute(formato: 'excel' | 'pdf'): Promise<ArrayBuffer> {
     return this.examenRepository.exportExamenes(formato);
+  }
+}
+
+@injectable()
+export class GetEstadisticasExamenesUseCase implements IGetEstadisticasExamenesUseCase {
+  constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
+  execute(): Promise<EstadisticaExamenDTO[]> {
+    return this.examenRepository.getEstadisticasExamenes();
+  }
+}
+
+@injectable()
+export class GetRankingAlumnosUseCase implements IGetRankingAlumnosUseCase {
+  constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
+  execute(): Promise<EstadisticaAlumnoDTO[]> {
+    return this.examenRepository.getRankingAlumnos();
+  }
+}
+
+@injectable()
+export class GetEstadisticasPreguntasUseCase implements IGetEstadisticasPreguntasUseCase {
+  constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
+  execute(): Promise<EstadisticaPreguntaDTO[]> {
+    return this.examenRepository.getEstadisticasPreguntas();
   }
 }

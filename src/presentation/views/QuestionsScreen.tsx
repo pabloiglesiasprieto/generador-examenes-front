@@ -10,15 +10,23 @@ import {
   TextInput,
   ScrollView,
   Switch,
+  Platform,
 } from 'react-native';
 import { useQuestionsScreen } from '../viewmodels/useQuestionsScreen';
 import { PreguntaDTO, RespuestaInput } from '../../domain/entities/Pregunta';
+
+const DIFICULTAD_COLORS: Record<string, string> = {
+  FACIL: '#10B981',
+  MEDIA: '#F59E0B',
+  DIFICIL: '#EF4444',
+};
 
 function PreguntaCard({
   item,
   onEdit,
   onDelete,
 }: Readonly<{ item: PreguntaDTO; onEdit: () => void; onDelete: () => void }>) {
+  const difColor = item.dificultad ? DIFICULTAD_COLORS[item.dificultad] ?? '#94A3B8' : null;
   return (
     <View style={styles.card}>
       <View style={styles.cardBody}>
@@ -32,6 +40,16 @@ function PreguntaCard({
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.respuestas.length} resp.</Text>
           </View>
+          {difColor && (
+            <View style={[styles.badge, { backgroundColor: difColor + '33' }]}>
+              <Text style={[styles.badgeText, { color: difColor }]}>{item.dificultad}</Text>
+            </View>
+          )}
+          {item.categoria && (
+            <View style={[styles.badge, { backgroundColor: '#7C3AED33' }]}>
+              <Text style={[styles.badgeText, { color: '#7C3AED' }]}>{item.categoria}</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.enunciado} numberOfLines={3}>
           {item.enunciado}
@@ -108,14 +126,43 @@ export default function QuestionsScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Barra de filtros */}
+          <View style={styles.filterBar}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
+              {(['', 'FACIL', 'MEDIA', 'DIFICIL'] as const).map((d) => (
+                <TouchableOpacity
+                  key={d || 'todas'}
+                  style={[styles.filterChip, q.filterDificultad === d && styles.filterChipActive]}
+                  onPress={() => q.setFilterDificultad(d)}
+                >
+                  <Text style={[styles.filterChipText, q.filterDificultad === d && styles.filterChipTextActive]}>
+                    {d || 'Todas'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TextInput
+              style={styles.filterInput}
+              placeholder="Categoría..."
+              placeholderTextColor="#555"
+              value={q.filterCategoria}
+              onChangeText={q.setFilterCategoria}
+            />
+          </View>
+
           <FlatList
             data={q.preguntas}
             keyExtractor={(p) => String(p.id)}
             contentContainerStyle={styles.list}
+            onEndReached={q.loadMore}
+            onEndReachedThreshold={0.3}
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyText}>No hay preguntas. ¡Crea la primera!</Text>
               </View>
+            }
+            ListFooterComponent={
+              q.loadingMore ? <ActivityIndicator color="#7C3AED" style={{ marginVertical: 12 }} /> : null
             }
             renderItem={({ item }) => (
               <PreguntaCard
@@ -205,6 +252,33 @@ export default function QuestionsScreen() {
                   />
                 </View>
 
+                <Text style={styles.fieldLabel}>Dificultad</Text>
+                <View style={styles.dificultadRow}>
+                  {(['', 'FACIL', 'MEDIA', 'DIFICIL'] as const).map((d) => {
+                    const color = d ? DIFICULTAD_COLORS[d] : '#94A3B8';
+                    const active = q.dificultad === d;
+                    return (
+                      <TouchableOpacity
+                        key={d || 'ninguna'}
+                        style={[styles.dificultadChip, active && { backgroundColor: color + '33', borderColor: color }]}
+                        onPress={() => q.setDificultad(d)}
+                      >
+                        <Text style={[styles.dificultadChipText, active && { color }]}>{d || 'Ninguna'}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                <Text style={styles.fieldLabel}>Categoría</Text>
+                <TextInput
+                  style={styles.textarea}
+                  placeholder="Ej: Java, SQL, Redes..."
+                  placeholderTextColor="#555"
+                  value={q.categoria}
+                  onChangeText={q.setCategoria}
+                  numberOfLines={1}
+                />
+
                 <Text style={styles.fieldLabel}>Respuestas</Text>
                 {q.respuestas.map((r, i) => (
                   <RespuestaRow
@@ -258,6 +332,16 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
   addBtn: { backgroundColor: '#7C3AED', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  filterBar: { paddingHorizontal: 16, paddingVertical: 8, gap: 8 },
+  filterChips: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: '#2D2D44', backgroundColor: '#1A1A2E' },
+  filterChipActive: { borderColor: '#7C3AED', backgroundColor: '#7C3AED33' },
+  filterChipText: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
+  filterChipTextActive: { color: '#7C3AED' },
+  filterInput: { backgroundColor: '#1A1A2E', borderWidth: 1, borderColor: '#2D2D44', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, color: '#FFFFFF', fontSize: 13 },
+  dificultadRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  dificultadChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#2D2D44', backgroundColor: '#1A1A2E' },
+  dificultadChipText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
   list: { padding: 16, gap: 12 },
   card: {
     backgroundColor: '#1A1A2E',

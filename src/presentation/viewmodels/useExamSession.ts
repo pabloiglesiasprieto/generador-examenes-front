@@ -1,24 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Alert, Platform } from 'react-native';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IEvaluarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { ExamenDTO, RespuestaAlumnoDTO } from '../../domain/entities/Examen';
 
-function buildInitialAnswers(examen: ExamenDTO, isReadOnly: boolean): Map<number, Set<number>> {
-  const map = new Map<number, Set<number>>();
-  if (!isReadOnly) return map;
-
-  examen.preguntas?.forEach((p, pIdx) => {
-    const correctIds = new Set(p.respuestas_correctas ?? []);
-    const selected = new Set<number>();
-    p.respuestas.forEach((r, rIdx) => {
-      if (correctIds.has(r.id)) selected.add(rIdx);
-    });
-    map.set(pIdx, selected);
-  });
-  return map;
-}
+const ALUMNO_TIMER_SECONDS = 120; // 2 minutos fijos para alumnos
 
 function buildRespuestasDTO(examen: ExamenDTO, answers: Map<number, Set<number>>): RespuestaAlumnoDTO[] {
   return (examen.preguntas ?? []).map((p, pIdx) => {
@@ -37,17 +24,41 @@ function extractErrorMessage(err: unknown): string {
   );
 }
 
-export function useExamSession(examen: ExamenDTO) {
+export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
   const preguntas = examen.preguntas ?? [];
-  const isReadOnly = preguntas.length > 0 && preguntas[0].respuestas_correctas != null;
+  // Admin siempre en modo solo lectura; alumno en modo interactivo
+  const isReadOnly = isAdminMode;
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Map<number, Set<number>>>(() =>
-    buildInitialAnswers(examen, isReadOnly),
-  );
+  const [answers, setAnswers] = useState<Map<number, Set<number>>>(() => new Map());
   const [submitting, setSubmitting] = useState(false);
+  // Admin no tiene timer; alumno tiene 2 minutos fijos
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(() =>
+    isAdminMode ? null : ALUMNO_TIMER_SECONDS,
+  );
+  const [isExpired, setIsExpired] = useState(false);
+  const autoSubmitRef = useRef<((cb: (resultado: unknown, examenId: number) => void) => void) | null>(null);
 
   const evaluarExamenUseCase = container.get<IEvaluarExamenUseCase>(TYPES.IEvaluarExamenUseCase);
+
+  // Countdown timer (solo para alumnos)
+  useEffect(() => {
+    if (timeRemaining === null || isReadOnly) return;
+    if (timeRemaining <= 0) {
+      setIsExpired(true);
+      return;
+    }
+    const interval = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev == null || prev <= 1) {
+          setIsExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timeRemaining, isReadOnly]);
 
   const currentPregunta = preguntas[currentIndex];
   const totalPreguntas = preguntas.length;
@@ -121,8 +132,11 @@ export function useExamSession(examen: ExamenDTO) {
     currentSelected,
     hasAnswered,
     submitting,
+    timeRemaining,
+    isExpired,
     toggleAnswer,
     goNext,
     confirmSubmit,
+    submitAnswers,
   };
 }

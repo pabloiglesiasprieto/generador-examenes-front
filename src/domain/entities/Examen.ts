@@ -4,7 +4,13 @@ export interface ExamenDTO {
   id: number;
   autor_id: number;
   fecha_creacion: string;
+  duracion_minutos?: number | null;
   preguntas: PreguntaDTO[];
+}
+
+export interface InicioExamenDTO {
+  fecha_inicio: string;
+  fecha_limite: string | null;
 }
 
 export interface RespuestaAlumnoDTO {
@@ -29,6 +35,7 @@ export interface ResultadoDTO {
   nota: number;
   total_preguntas: number;
   preguntas_correctas: number;
+  tiempo_segundos?: number;
   detalle: DetalleRespuestaDTO[];
 }
 

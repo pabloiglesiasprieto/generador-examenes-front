@@ -27,21 +27,29 @@ import {
   GetExamenesUseCase,
   GetExamenByIdUseCase,
   CreateExamenUseCase,
+  IniciarExamenUseCase,
   DeleteExamenUseCase,
   EvaluarExamenUseCase,
   GetResultadosExamenUseCase,
   GetResultadosAlumnoUseCase,
   ExportExamenesUseCase,
+  GetEstadisticasExamenesUseCase,
+  GetRankingAlumnosUseCase,
+  GetEstadisticasPreguntasUseCase,
 } from '../../domain/useCases/examenes/GetExamenesUseCase';
 import {
   IGetExamenesUseCase,
   IGetExamenByIdUseCase,
   ICreateExamenUseCase,
+  IIniciarExamenUseCase,
   IDeleteExamenUseCase,
   IEvaluarExamenUseCase,
   IGetResultadosExamenUseCase,
   IGetResultadosAlumnoUseCase,
   IExportExamenesUseCase,
+  IGetEstadisticasExamenesUseCase,
+  IGetRankingAlumnosUseCase,
+  IGetEstadisticasPreguntasUseCase,
 } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 
 // UseCases - Preguntas
@@ -118,6 +126,10 @@ container.bind<IEvaluarExamenUseCase>(TYPES.IEvaluarExamenUseCase).to(EvaluarExa
 container.bind<IGetResultadosExamenUseCase>(TYPES.IGetResultadosExamenUseCase).to(GetResultadosExamenUseCase);
 container.bind<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase).to(GetResultadosAlumnoUseCase);
 container.bind<IExportExamenesUseCase>(TYPES.IExportExamenesUseCase).to(ExportExamenesUseCase);
+container.bind<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase).to(IniciarExamenUseCase);
+container.bind<IGetEstadisticasExamenesUseCase>(TYPES.IGetEstadisticasExamenesUseCase).to(GetEstadisticasExamenesUseCase);
+container.bind<IGetRankingAlumnosUseCase>(TYPES.IGetRankingAlumnosUseCase).to(GetRankingAlumnosUseCase);
+container.bind<IGetEstadisticasPreguntasUseCase>(TYPES.IGetEstadisticasPreguntasUseCase).to(GetEstadisticasPreguntasUseCase);
 
 // Bind use cases - Preguntas
 container.bind<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase).to(GetAllPreguntasUseCase);

@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { PageResponse } from '../../domain/entities/Page';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import {
@@ -16,6 +17,8 @@ const DEFAULT_RESPUESTAS: RespuestaInput[] = [
   { texto: '', es_correcta: false },
   { texto: '', es_correcta: false },
 ];
+
+const PAGE_SIZE = 20;
 
 function extractApiError(err: unknown, fallback: string): string {
   return (
@@ -37,6 +40,9 @@ function validatePreguntaForm(
 export function useQuestionsScreen() {
   const [preguntas, setPreguntas] = useState<PreguntaDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const currentPageRef = useRef(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [editing, setEditing] = useState<PreguntaDTO | null>(null);
   const [saving, setSaving] = useState(false);
@@ -46,6 +52,10 @@ export function useQuestionsScreen() {
   const [enunciado, setEnunciado] = useState('');
   const [esMultiple, setEsMultiple] = useState(false);
   const [respuestas, setRespuestas] = useState<RespuestaInput[]>(DEFAULT_RESPUESTAS);
+  const [dificultad, setDificultad] = useState<string>('');
+  const [categoria, setCategoria] = useState<string>('');
+  const [filterDificultad, setFilterDificultad] = useState<string>('');
+  const [filterCategoria, setFilterCategoria] = useState<string>('');
 
   const getAllPreguntasUseCase = container.get<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase);
   const getPreguntaByIdUseCase = container.get<IGetPreguntaByIdUseCase>(TYPES.IGetPreguntaByIdUseCase);
@@ -54,15 +64,43 @@ export function useQuestionsScreen() {
   const deletePreguntaUseCase = container.get<IDeletePreguntaUseCase>(TYPES.IDeletePreguntaUseCase);
 
   const loadPreguntas = useCallback(async () => {
+    currentPageRef.current = 0;
+    setHasMore(true);
     try {
-      const data = await getAllPreguntasUseCase.execute();
-      setPreguntas(data);
+      const result = await getAllPreguntasUseCase.execute('id', 'asc', 0, PAGE_SIZE);
+      if (result && typeof result === 'object' && 'content' in result) {
+        const paged = result as PageResponse<PreguntaDTO>;
+        setPreguntas(paged.content);
+        setHasMore(!paged.last);
+      } else {
+        setPreguntas(result as PreguntaDTO[]);
+        setHasMore(false);
+      }
     } catch {
       Alert.alert('Error', 'No se pudieron cargar las preguntas');
     } finally {
       setLoading(false);
     }
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (!hasMore || loadingMore) return;
+    setLoadingMore(true);
+    const nextPage = currentPageRef.current + 1;
+    try {
+      const result = await getAllPreguntasUseCase.execute('id', 'asc', nextPage, PAGE_SIZE);
+      if (result && typeof result === 'object' && 'content' in result) {
+        const paged = result as PageResponse<PreguntaDTO>;
+        setPreguntas((prev) => [...prev, ...paged.content]);
+        setHasMore(!paged.last);
+        currentPageRef.current = nextPage;
+      }
+    } catch {
+      // No mostrar error en loadMore para no interrumpir la UX
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasMore, loadingMore]);
 
   useFocusEffect(
     useCallback(() => {
@@ -76,6 +114,8 @@ export function useQuestionsScreen() {
     setEnunciado('');
     setEsMultiple(false);
     setRespuestas([...DEFAULT_RESPUESTAS]);
+    setDificultad('');
+    setCategoria('');
     setModalVisible(true);
   };
 
@@ -84,6 +124,8 @@ export function useQuestionsScreen() {
     setEditing(full);
     setEnunciado(full.enunciado);
     setEsMultiple(full.es_multiple);
+    setDificultad(full.dificultad ?? '');
+    setCategoria(full.categoria ?? '');
     setRespuestas(
       full.respuestas.map((r) => ({
         texto: r.texto,
@@ -123,6 +165,8 @@ export function useQuestionsScreen() {
       enunciado: enunciado.trim(),
       es_multiple: esMultiple,
       respuestas: respuestas.filter((r) => r.texto.trim()),
+      dificultad: dificultad || undefined,
+      categoria: categoria.trim() || undefined,
     };
 
     setSaving(true);
@@ -166,9 +210,18 @@ export function useQuestionsScreen() {
     }
   };
 
+  const preguntasFiltradas = preguntas.filter((p) => {
+    if (filterDificultad && p.dificultad !== filterDificultad) return false;
+    if (filterCategoria && !(p.categoria ?? '').toLowerCase().includes(filterCategoria.toLowerCase())) return false;
+    return true;
+  });
+
   return {
-    preguntas,
+    preguntas: preguntasFiltradas,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
     modalVisible,
     editing,
     saving,
@@ -178,8 +231,16 @@ export function useQuestionsScreen() {
     enunciado,
     esMultiple,
     respuestas,
+    dificultad,
+    categoria,
+    filterDificultad,
+    filterCategoria,
     setEnunciado,
     setEsMultiple,
+    setDificultad,
+    setCategoria,
+    setFilterDificultad,
+    setFilterCategoria,
     openCreate,
     openEdit,
     closeModal,

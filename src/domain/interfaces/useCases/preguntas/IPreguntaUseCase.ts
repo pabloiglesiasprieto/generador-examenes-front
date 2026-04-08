@@ -1,7 +1,8 @@
+import { PageResponse } from '../../../entities/Page';
 import { PreguntaDTO, PreguntaInput } from '../../../entities/Pregunta';
 
 export interface IGetAllPreguntasUseCase {
-  execute(sortBy?: string, order?: string): Promise<PreguntaDTO[]>;
+  execute(sortBy?: string, order?: string, page?: number, size?: number): Promise<PreguntaDTO[] | PageResponse<PreguntaDTO>>;
 }
 
 export interface IGetPreguntaByIdUseCase {

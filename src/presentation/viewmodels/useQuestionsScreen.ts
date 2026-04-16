@@ -12,10 +12,14 @@ import {
   IDeletePreguntaUseCase,
 } from '../../domain/interfaces/useCases/preguntas/IPreguntaUseCase';
 import { PreguntaDTO, PreguntaInput, RespuestaInput } from '../../domain/entities/Pregunta';
+import { validatePreguntasJson, JsonValidationError } from '../utils/validatePreguntasJson';
+
+let _keyCounter = 0;
+const nextKey = () => ++_keyCounter;
 
 const DEFAULT_RESPUESTAS: RespuestaInput[] = [
-  { texto: '', es_correcta: false },
-  { texto: '', es_correcta: false },
+  { _key: nextKey(), texto: '', es_correcta: false },
+  { _key: nextKey(), texto: '', es_correcta: false },
 ];
 
 const PAGE_SIZE = 20;
@@ -56,6 +60,10 @@ export function useQuestionsScreen() {
   const [categoria, setCategoria] = useState<string>('');
   const [filterDificultad, setFilterDificultad] = useState<string>('');
   const [filterCategoria, setFilterCategoria] = useState<string>('');
+  const [jsonInput, setJsonInput] = useState<string>('');
+  const [jsonErrors, setJsonErrors] = useState<JsonValidationError[]>([]);
+  const [jsonImporting, setJsonImporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
 
   const getAllPreguntasUseCase = container.get<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase);
   const getPreguntaByIdUseCase = container.get<IGetPreguntaByIdUseCase>(TYPES.IGetPreguntaByIdUseCase);
@@ -109,13 +117,23 @@ export function useQuestionsScreen() {
     }, [loadPreguntas]),
   );
 
+  const resetJsonTab = () => {
+    setJsonInput('');
+    setJsonErrors([]);
+  };
+
   const openCreate = () => {
     setEditing(null);
     setEnunciado('');
     setEsMultiple(false);
-    setRespuestas([...DEFAULT_RESPUESTAS]);
+    setRespuestas([
+      { _key: nextKey(), texto: '', es_correcta: false },
+      { _key: nextKey(), texto: '', es_correcta: false },
+    ]);
     setDificultad('');
     setCategoria('');
+    resetJsonTab();
+    setActiveTab('form');
     setModalVisible(true);
   };
 
@@ -128,6 +146,7 @@ export function useQuestionsScreen() {
     setCategoria(full.categoria ?? '');
     setRespuestas(
       full.respuestas.map((r) => ({
+        _key: nextKey(),
         texto: r.texto,
         es_correcta:
           full.respuestas_correctas?.includes(r.respuesta_id ?? r.id ?? -1) ??
@@ -138,10 +157,14 @@ export function useQuestionsScreen() {
     setModalVisible(true);
   };
 
-  const closeModal = () => setModalVisible(false);
+  const closeModal = () => {
+    setModalVisible(false);
+    resetJsonTab();
+    setActiveTab('form');
+  };
 
   const addRespuesta = () =>
-    setRespuestas((prev) => [...prev, { texto: '', es_correcta: false }]);
+    setRespuestas((prev) => [...prev, { _key: nextKey(), texto: '', es_correcta: false }]);
 
   const removeRespuesta = (i: number) =>
     setRespuestas((prev) => prev.filter((_, idx) => idx !== i));
@@ -164,7 +187,7 @@ export function useQuestionsScreen() {
     const data: PreguntaInput = {
       enunciado: enunciado.trim(),
       es_multiple: esMultiple,
-      respuestas: respuestas.filter((r) => r.texto.trim()),
+      respuestas: respuestas.filter((r) => r.texto.trim()).map(({ _key: _, ...r }) => r),
       dificultad: dificultad || undefined,
       categoria: categoria.trim() || undefined,
     };
@@ -182,6 +205,29 @@ export function useQuestionsScreen() {
       Alert.alert('Error', extractApiError(err, 'Error al guardar'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleJsonImport = async () => {
+    const result = validatePreguntasJson(jsonInput);
+    if (!result.valid) {
+      setJsonErrors(result.errors);
+      return;
+    }
+    setJsonErrors([]);
+    setJsonImporting(true);
+    try {
+      for (const pregunta of result.preguntas!) {
+        await createPreguntaUseCase.execute(pregunta);
+      }
+      setModalVisible(false);
+      resetJsonTab();
+      setActiveTab('form');
+      await loadPreguntas();
+    } catch (err: unknown) {
+      setJsonErrors([{ path: 'API', message: extractApiError(err, 'Error al importar las preguntas') }]);
+    } finally {
+      setJsonImporting(false);
     }
   };
 
@@ -251,5 +297,12 @@ export function useQuestionsScreen() {
     handleDelete,
     cancelDelete,
     confirmDelete,
+    jsonInput,
+    setJsonInput,
+    jsonErrors,
+    jsonImporting,
+    activeTab,
+    setActiveTab,
+    handleJsonImport,
   };
 }

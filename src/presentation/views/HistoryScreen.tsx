@@ -34,7 +34,7 @@ function DetalleModal({
           <View>
             <Text style={modalStyles.headerTitle}>Examen #{resultado.examen_id}</Text>
             <Text style={modalStyles.headerSub}>
-              Intento #{resultado.intento} · {resultado.nota.toFixed(1)}/10
+              Intento #{resultado.intento} · {resultado.nota == null ? '-' : resultado.nota.toFixed(1)}/10
             </Text>
           </View>
           <TouchableOpacity style={modalStyles.closeBtn} onPress={onClose}>
@@ -137,7 +137,7 @@ function HistoryCard({
             </View>
             <View style={styles.gradeRight}>
               <Text style={[styles.gradeLabel, { color: notaColor }]}>{getGradeLabel(item.nota)}</Text>
-              <Text style={[styles.nota, { color: notaColor }]}>{item.nota.toFixed(1)}</Text>
+              <Text style={[styles.nota, { color: notaColor }]}>{item.nota == null ? '-' : item.nota.toFixed(1)}</Text>
             </View>
           </View>
 

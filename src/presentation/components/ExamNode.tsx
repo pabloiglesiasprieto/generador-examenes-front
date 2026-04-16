@@ -14,11 +14,60 @@ function getStarsFilled(stars: number) {
   return ['★', '★', '★'].map((s, i) => (i < stars ? s : '☆')).join('');
 }
 
-export default function ExamNode({ info, index, onPress, isProfesor, onDelete }: Props) {
+function getDifficulty(qCount: number) {
+  if (qCount >= 15) return { label: 'Difícil', color: '#EF4444' };
+  if (qCount >= 8) return { label: 'Medio', color: '#F59E0B' };
+  return { label: 'Fácil', color: '#10B981' };
+}
+
+function getNodeColor(status: string, isFailed: boolean) {
+  if (status !== 'completed') return '#7C3AED';
+  return isFailed ? '#EF4444' : '#10B981';
+}
+
+interface CardStatusProps {
+  isFailed: boolean;
+  stars: number;
+  bestNota: number;
+  nodeColor: string;
+}
+
+function CardStatus({ isFailed, stars, bestNota, nodeColor }: Readonly<CardStatusProps>) {
+  if (isFailed) {
+    return (
+      <View style={styles.starsRow}>
+        <Text style={styles.failedLabel}>Suspenso</Text>
+        <View style={[styles.scorePill, { backgroundColor: '#EF444422' }]}>
+          <Text style={[styles.scoreText, styles.scoreTextFailed]}>{bestNota.toFixed(1)}/10</Text>
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View style={styles.starsRow}>
+      <Text style={[styles.starsText, { color: '#F59E0B' }]}>{getStarsFilled(stars)}</Text>
+      <View style={[styles.scorePill, { backgroundColor: '#F59E0B22' }]}>
+        <Text style={styles.scoreText}>{bestNota.toFixed(1)}/10</Text>
+      </View>
+    </View>
+  );
+}
+
+function AvailableStatus({ nodeColor }: Readonly<{ nodeColor: string }>) {
+  return (
+    <View style={styles.availableRow}>
+      <View style={[styles.availableDot, { backgroundColor: nodeColor }]} />
+      <Text style={[styles.availableText, { color: nodeColor }]}>Disponible</Text>
+    </View>
+  );
+}
+
+export default function ExamNode({ info, index, onPress, isProfesor, onDelete }: Readonly<Props>) {
   const { examen, status, stars, bestNota } = info;
   const isRight = index % 2 === 0;
 
-  const nodeColor = status === 'completed' ? '#10B981' : '#7C3AED';
+  const isFailed = status === 'completed' && bestNota < 5;
+  const nodeColor = getNodeColor(status, isFailed);
   const ringScale = useRef(new Animated.Value(1)).current;
   const ringOpacity = useRef(new Animated.Value(0.6)).current;
 
@@ -40,13 +89,10 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
   }, [status]);
 
   const qCount = examen.preguntas?.length ?? 0;
-  const difficulty = qCount >= 15 ? { label: 'Difícil', color: '#EF4444' }
-    : qCount >= 8 ? { label: 'Medio', color: '#F59E0B' }
-    : { label: 'Fácil', color: '#10B981' };
+  const difficulty = getDifficulty(qCount);
 
   return (
     <View style={[styles.row, isRight ? styles.rowRight : styles.rowLeft]}>
-      {/* Node */}
       <TouchableOpacity
         onPress={onPress}
         style={[styles.nodeWrapper, isRight ? styles.nodeRight : styles.nodeLeft]}
@@ -65,7 +111,7 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
         <View style={[styles.nodeShadow, { shadowColor: nodeColor }]}>
           <View style={[styles.node, { backgroundColor: nodeColor }]}>
             {status === 'completed' ? (
-              <Text style={styles.checkmark}>✓</Text>
+              <Text style={styles.checkmark}>{isFailed ? '✕' : '✓'}</Text>
             ) : (
               <Text style={styles.nodeNumber}>{index + 1}</Text>
             )}
@@ -82,17 +128,9 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
           </View>
 
           {status === 'completed' ? (
-            <View style={styles.starsRow}>
-              <Text style={[styles.starsText, { color: '#F59E0B' }]}>{getStarsFilled(stars)}</Text>
-              <View style={[styles.scorePill, { backgroundColor: '#F59E0B22' }]}>
-                <Text style={styles.scoreText}>{bestNota.toFixed(1)}/10</Text>
-              </View>
-            </View>
+            <CardStatus isFailed={isFailed} stars={stars} bestNota={bestNota} nodeColor={nodeColor} />
           ) : (
-            <View style={styles.availableRow}>
-              <View style={[styles.availableDot, { backgroundColor: nodeColor }]} />
-              <Text style={[styles.availableText, { color: nodeColor }]}>Disponible</Text>
-            </View>
+            <AvailableStatus nodeColor={nodeColor} />
           )}
 
           <View style={styles.metaRow}>
@@ -188,12 +226,14 @@ const styles = StyleSheet.create({
   diffText: { fontSize: 10, fontWeight: '700' },
   starsRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   starsText: { fontSize: 14 },
+  failedLabel: { fontSize: 12, color: '#EF4444', fontWeight: '700' },
   scorePill: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
   },
   scoreText: { fontSize: 11, color: '#F59E0B', fontWeight: '700' },
+  scoreTextFailed: { color: '#EF4444' },
   availableRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   availableDot: { width: 7, height: 7, borderRadius: 4 },
   availableText: { fontSize: 12, fontWeight: '600' },

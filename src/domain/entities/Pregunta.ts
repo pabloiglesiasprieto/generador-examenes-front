@@ -16,6 +16,7 @@ export interface PreguntaDTO {
 }
 
 export interface RespuestaInput {
+  _key: number;
   texto: string;
   es_correcta: boolean;
 }

@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { useQuestionsScreen } from '../viewmodels/useQuestionsScreen';
+import { JsonValidationError } from '../utils/validatePreguntasJson';
 import { PreguntaDTO, RespuestaInput } from '../../domain/entities/Pregunta';
 
 const DIFICULTAD_COLORS: Record<string, string> = {
@@ -103,6 +104,147 @@ function RespuestaRow({
         </TouchableOpacity>
       )}
     </View>
+  );
+}
+
+type QState = ReturnType<typeof useQuestionsScreen>;
+
+function FormTab({ q }: Readonly<{ q: QState }>) {
+  return (
+    <ScrollView contentContainerStyle={styles.modalBody}>
+      <Text style={styles.fieldLabel}>Enunciado</Text>
+      <TextInput
+        style={styles.textarea}
+        multiline
+        numberOfLines={3}
+        placeholder="Escribe la pregunta..."
+        placeholderTextColor="#555"
+        value={q.enunciado}
+        onChangeText={q.setEnunciado}
+      />
+
+      <View style={styles.switchRow}>
+        <Text style={styles.fieldLabel}>Respuesta múltiple</Text>
+        <Switch
+          value={q.esMultiple}
+          onValueChange={q.setEsMultiple}
+          trackColor={{ true: '#7C3AED', false: '#2D2D44' }}
+          thumbColor="#fff"
+        />
+      </View>
+
+      <Text style={styles.fieldLabel}>Dificultad</Text>
+      <View style={styles.dificultadRow}>
+        {(['', 'FACIL', 'MEDIA', 'DIFICIL'] as const).map((d) => {
+          const color = d ? DIFICULTAD_COLORS[d] : '#94A3B8';
+          const active = q.dificultad === d;
+          return (
+            <TouchableOpacity
+              key={d || 'ninguna'}
+              style={[styles.dificultadChip, active && { backgroundColor: color + '33', borderColor: color }]}
+              onPress={() => q.setDificultad(d)}
+            >
+              <Text style={[styles.dificultadChipText, active && { color }]}>{d || 'Ninguna'}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <Text style={styles.fieldLabel}>Categoría</Text>
+      <TextInput
+        style={styles.textarea}
+        placeholder="Ej: Java, SQL, Redes..."
+        placeholderTextColor="#555"
+        value={q.categoria}
+        onChangeText={q.setCategoria}
+        numberOfLines={1}
+      />
+
+      <Text style={styles.fieldLabel}>Respuestas</Text>
+      {q.respuestas.map((r, i) => (
+        <RespuestaRow
+          key={r._key}
+          respuesta={r}
+          index={i}
+          canRemove={q.respuestas.length > 2}
+          onToggleCorrect={() => q.updateRespuesta(i, 'es_correcta', !r.es_correcta)}
+          onChangeText={(v) => q.updateRespuesta(i, 'texto', v)}
+          onRemove={() => q.removeRespuesta(i)}
+        />
+      ))}
+
+      <TouchableOpacity onPress={q.addRespuesta} style={styles.addRespBtn}>
+        <Text style={styles.addRespText}>+ Añadir respuesta</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.saveBtn, q.saving && styles.saveBtnDisabled]}
+        onPress={q.handleSave}
+        disabled={q.saving}
+      >
+        {q.saving ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.saveBtnText}>{q.editing ? 'Guardar cambios' : 'Crear pregunta'}</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+function JsonErrorList({ errors }: Readonly<{ errors: JsonValidationError[] }>) {
+  if (errors.length === 0) return null;
+  return (
+    <View style={styles.jsonErrorBox}>
+      <Text style={styles.jsonErrorTitle}>
+        {errors.length} {errors.length === 1 ? 'error encontrado' : 'errores encontrados'}
+      </Text>
+      {errors.map((e) => (
+        <View key={`${e.path}::${e.message}`} style={styles.jsonErrorRow}>
+          <Text style={styles.jsonErrorPath}>{e.path}</Text>
+          <Text style={styles.jsonErrorMsg}>{e.message}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function JsonTab({ q }: Readonly<{ q: QState }>) {
+  return (
+    <ScrollView contentContainerStyle={styles.modalBody}>
+      <Text style={styles.fieldLabel}>JSON de preguntas</Text>
+      <Text style={styles.jsonHint}>
+        Pega un objeto o array de objetos con los campos:{'\n'}
+        <Text style={styles.jsonCode}>enunciado</Text> (string){', '}
+        <Text style={styles.jsonCode}>es_multiple</Text> (boolean){', '}
+        <Text style={styles.jsonCode}>respuestas</Text> (array){'\n'}
+        Opcionales: <Text style={styles.jsonCode}>dificultad</Text> (FACIL | MEDIA | DIFICIL){', '}
+        <Text style={styles.jsonCode}>categoria</Text> (string)
+      </Text>
+      <TextInput
+        style={styles.jsonInput}
+        multiline
+        placeholder={'[\n  {\n    "enunciado": "...",\n    "es_multiple": false,\n    "respuestas": [\n      { "texto": "...", "es_correcta": true },\n      { "texto": "...", "es_correcta": false }\n    ]\n  }\n]'}
+        placeholderTextColor="#444"
+        value={q.jsonInput}
+        onChangeText={q.setJsonInput}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+      />
+      <JsonErrorList errors={q.jsonErrors} />
+      <TouchableOpacity
+        style={[styles.saveBtn, q.jsonImporting && styles.saveBtnDisabled]}
+        onPress={q.handleJsonImport}
+        disabled={q.jsonImporting}
+      >
+        {q.jsonImporting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.saveBtnText}>Importar preguntas</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
@@ -230,84 +372,31 @@ export default function QuestionsScreen() {
                   <Text style={styles.modalClose}>✕</Text>
                 </TouchableOpacity>
               </View>
-              <ScrollView contentContainerStyle={styles.modalBody}>
-                <Text style={styles.fieldLabel}>Enunciado</Text>
-                <TextInput
-                  style={styles.textarea}
-                  multiline
-                  numberOfLines={3}
-                  placeholder="Escribe la pregunta..."
-                  placeholderTextColor="#555"
-                  value={q.enunciado}
-                  onChangeText={q.setEnunciado}
-                />
 
-                <View style={styles.switchRow}>
-                  <Text style={styles.fieldLabel}>Respuesta múltiple</Text>
-                  <Switch
-                    value={q.esMultiple}
-                    onValueChange={q.setEsMultiple}
-                    trackColor={{ true: '#7C3AED', false: '#2D2D44' }}
-                    thumbColor="#fff"
-                  />
+              {/* Pestañas (solo en modo creación) */}
+              {!q.editing && (
+                <View style={styles.tabBar}>
+                  <TouchableOpacity
+                    style={[styles.tab, q.activeTab === 'form' && styles.tabActive]}
+                    onPress={() => q.setActiveTab('form')}
+                  >
+                    <Text style={[styles.tabText, q.activeTab === 'form' && styles.tabTextActive]}>
+                      Formulario
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tab, q.activeTab === 'json' && styles.tabActive]}
+                    onPress={() => q.setActiveTab('json')}
+                  >
+                    <Text style={[styles.tabText, q.activeTab === 'json' && styles.tabTextActive]}>
+                      Importar JSON
+                    </Text>
+                  </TouchableOpacity>
                 </View>
+              )}
 
-                <Text style={styles.fieldLabel}>Dificultad</Text>
-                <View style={styles.dificultadRow}>
-                  {(['', 'FACIL', 'MEDIA', 'DIFICIL'] as const).map((d) => {
-                    const color = d ? DIFICULTAD_COLORS[d] : '#94A3B8';
-                    const active = q.dificultad === d;
-                    return (
-                      <TouchableOpacity
-                        key={d || 'ninguna'}
-                        style={[styles.dificultadChip, active && { backgroundColor: color + '33', borderColor: color }]}
-                        onPress={() => q.setDificultad(d)}
-                      >
-                        <Text style={[styles.dificultadChipText, active && { color }]}>{d || 'Ninguna'}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-
-                <Text style={styles.fieldLabel}>Categoría</Text>
-                <TextInput
-                  style={styles.textarea}
-                  placeholder="Ej: Java, SQL, Redes..."
-                  placeholderTextColor="#555"
-                  value={q.categoria}
-                  onChangeText={q.setCategoria}
-                  numberOfLines={1}
-                />
-
-                <Text style={styles.fieldLabel}>Respuestas</Text>
-                {q.respuestas.map((r, i) => (
-                  <RespuestaRow
-                    key={`resp-${r.texto}-${i}`}
-                    respuesta={r}
-                    index={i}
-                    canRemove={q.respuestas.length > 2}
-                    onToggleCorrect={() => q.updateRespuesta(i, 'es_correcta', !r.es_correcta)}
-                    onChangeText={(v) => q.updateRespuesta(i, 'texto', v)}
-                    onRemove={() => q.removeRespuesta(i)}
-                  />
-                ))}
-
-                <TouchableOpacity onPress={q.addRespuesta} style={styles.addRespBtn}>
-                  <Text style={styles.addRespText}>+ Añadir respuesta</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.saveBtn, q.saving && styles.saveBtnDisabled]}
-                  onPress={q.handleSave}
-                  disabled={q.saving}
-                >
-                  {q.saving ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.saveBtnText}>{q.editing ? 'Guardar cambios' : 'Crear pregunta'}</Text>
-                  )}
-                </TouchableOpacity>
-              </ScrollView>
+              {(q.editing || q.activeTab === 'form') && <FormTab q={q} />}
+              {!q.editing && q.activeTab === 'json' && <JsonTab q={q} />}
             </View>
           </Modal>
         </>
@@ -487,4 +576,60 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteConfirmText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2D2D44',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#7C3AED',
+  },
+  tabText: { color: '#64748B', fontWeight: '600', fontSize: 14 },
+  tabTextActive: { color: '#7C3AED' },
+  jsonHint: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 20,
+    backgroundColor: '#1A1A2E',
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#2D2D44',
+  },
+  jsonCode: { color: '#A78BFA', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+  jsonInput: {
+    backgroundColor: '#1A1A2E',
+    borderWidth: 1,
+    borderColor: '#2D2D44',
+    borderRadius: 12,
+    padding: 14,
+    color: '#FFFFFF',
+    fontSize: 13,
+    textAlignVertical: 'top',
+    minHeight: 220,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  jsonErrorBox: {
+    backgroundColor: '#1A0D0D',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    padding: 14,
+    gap: 10,
+  },
+  jsonErrorTitle: { color: '#EF4444', fontWeight: '700', fontSize: 13, marginBottom: 4 },
+  jsonErrorRow: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#EF4444',
+    paddingLeft: 10,
+    gap: 2,
+  },
+  jsonErrorPath: { color: '#F87171', fontSize: 12, fontWeight: '700', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace' },
+  jsonErrorMsg: { color: '#94A3B8', fontSize: 12 },
 });

@@ -20,3 +20,7 @@ export interface IUpdatePreguntaUseCase {
 export interface IDeletePreguntaUseCase {
   execute(id: number): Promise<void>;
 }
+
+export interface IImportarCsvPreguntasUseCase {
+  execute(csvContent: string): Promise<PreguntaDTO[]>;
+}

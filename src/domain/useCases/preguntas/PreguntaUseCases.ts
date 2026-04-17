@@ -7,6 +7,7 @@ import {
   ICreatePreguntaUseCase,
   IUpdatePreguntaUseCase,
   IDeletePreguntaUseCase,
+  IImportarCsvPreguntasUseCase,
 } from '../../interfaces/useCases/preguntas/IPreguntaUseCase';
 import { PageResponse } from '../../entities/Page';
 import { PreguntaDTO, PreguntaInput } from '../../entities/Pregunta';
@@ -48,5 +49,13 @@ export class DeletePreguntaUseCase implements IDeletePreguntaUseCase {
   constructor(@inject(TYPES.IPreguntaRepository) private preguntaRepository: IPreguntaRepository) {}
   execute(id: number): Promise<void> {
     return this.preguntaRepository.deletePregunta(id);
+  }
+}
+
+@injectable()
+export class ImportarCsvPreguntasUseCase implements IImportarCsvPreguntasUseCase {
+  constructor(@inject(TYPES.IPreguntaRepository) private preguntaRepository: IPreguntaRepository) {}
+  execute(csvContent: string): Promise<PreguntaDTO[]> {
+    return this.preguntaRepository.importarCsv(csvContent);
   }
 }

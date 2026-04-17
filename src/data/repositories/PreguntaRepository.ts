@@ -28,4 +28,13 @@ export class PreguntaRepository implements IPreguntaRepository {
   deletePregunta(id: number): Promise<void> {
     return apiClient.delete(`/preguntas/${id}`).then(() => undefined);
   }
+
+  importarCsv(csvContent: string): Promise<PreguntaDTO[]> {
+    const form = new FormData();
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    form.append('archivo', blob, 'preguntas.csv');
+    return apiClient.post<PreguntaDTO[]>('/preguntas/importar-csv', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then((r) => r.data);
+  }
 }

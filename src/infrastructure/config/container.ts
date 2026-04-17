@@ -59,6 +59,7 @@ import {
   CreatePreguntaUseCase,
   UpdatePreguntaUseCase,
   DeletePreguntaUseCase,
+  ImportarCsvPreguntasUseCase,
 } from '../../domain/useCases/preguntas/PreguntaUseCases';
 import {
   IGetAllPreguntasUseCase,
@@ -66,6 +67,7 @@ import {
   ICreatePreguntaUseCase,
   IUpdatePreguntaUseCase,
   IDeletePreguntaUseCase,
+  IImportarCsvPreguntasUseCase,
 } from '../../domain/interfaces/useCases/preguntas/IPreguntaUseCase';
 
 // UseCases - Usuarios
@@ -137,6 +139,7 @@ container.bind<IGetPreguntaByIdUseCase>(TYPES.IGetPreguntaByIdUseCase).to(GetPre
 container.bind<ICreatePreguntaUseCase>(TYPES.ICreatePreguntaUseCase).to(CreatePreguntaUseCase);
 container.bind<IUpdatePreguntaUseCase>(TYPES.IUpdatePreguntaUseCase).to(UpdatePreguntaUseCase);
 container.bind<IDeletePreguntaUseCase>(TYPES.IDeletePreguntaUseCase).to(DeletePreguntaUseCase);
+container.bind<IImportarCsvPreguntasUseCase>(TYPES.IImportarCsvPreguntasUseCase).to(ImportarCsvPreguntasUseCase);
 
 // Bind use cases - Usuarios
 container.bind<IGetAllRolesUseCase>(TYPES.IGetAllRolesUseCase).to(GetAllRolesUseCase);

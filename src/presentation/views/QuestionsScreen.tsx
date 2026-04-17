@@ -248,6 +248,43 @@ function JsonTab({ q }: Readonly<{ q: QState }>) {
   );
 }
 
+function CsvTab({ q }: Readonly<{ q: QState }>) {
+  return (
+    <ScrollView contentContainerStyle={styles.modalBody}>
+      <Text style={styles.fieldLabel}>CSV de preguntas</Text>
+      <Text style={styles.jsonHint}>
+        Pega el contenido de un fichero CSV con cabecera:{'\n'}
+        <Text style={styles.jsonCode}>enunciado,es_multiple,dificultad,categoria,respuesta_1,correcta_1,respuesta_2,correcta_2,...</Text>{'\n\n'}
+        <Text style={styles.jsonCode}>dificultad</Text>: FACIL | MEDIA | DIFICIL (o vacío){'\n'}
+        <Text style={styles.jsonCode}>correcta_N</Text>: true | false
+      </Text>
+      <TextInput
+        style={styles.jsonInput}
+        multiline
+        placeholder={'enunciado,es_multiple,dificultad,categoria,respuesta_1,correcta_1,respuesta_2,correcta_2\n"¿Cuál es la capital de España?",false,FACIL,Geografia,Madrid,true,Barcelona,false'}
+        placeholderTextColor="#444"
+        value={q.csvInput}
+        onChangeText={q.setCsvInput}
+        autoCapitalize="none"
+        autoCorrect={false}
+        spellCheck={false}
+      />
+      <JsonErrorList errors={q.csvErrors} />
+      <TouchableOpacity
+        style={[styles.saveBtn, q.csvImporting && styles.saveBtnDisabled]}
+        onPress={q.handleCsvImport}
+        disabled={q.csvImporting}
+      >
+        {q.csvImporting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.saveBtnText}>Importar CSV</Text>
+        )}
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
 export default function QuestionsScreen() {
   const q = useQuestionsScreen();
 
@@ -389,7 +426,15 @@ export default function QuestionsScreen() {
                     onPress={() => q.setActiveTab('json')}
                   >
                     <Text style={[styles.tabText, q.activeTab === 'json' && styles.tabTextActive]}>
-                      Importar JSON
+                      JSON
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tab, q.activeTab === 'csv' && styles.tabActive]}
+                    onPress={() => q.setActiveTab('csv')}
+                  >
+                    <Text style={[styles.tabText, q.activeTab === 'csv' && styles.tabTextActive]}>
+                      CSV
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -397,6 +442,7 @@ export default function QuestionsScreen() {
 
               {(q.editing || q.activeTab === 'form') && <FormTab q={q} />}
               {!q.editing && q.activeTab === 'json' && <JsonTab q={q} />}
+              {!q.editing && q.activeTab === 'csv' && <CsvTab q={q} />}
             </View>
           </Modal>
         </>

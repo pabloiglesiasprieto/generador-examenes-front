@@ -7,4 +7,5 @@ export interface IPreguntaRepository {
   createPregunta(data: PreguntaInput): Promise<PreguntaDTO>;
   updatePregunta(id: number, data: PreguntaInput): Promise<PreguntaDTO>;
   deletePregunta(id: number): Promise<void>;
+  importarCsv(csvContent: string): Promise<PreguntaDTO[]>;
 }

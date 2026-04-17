@@ -30,6 +30,7 @@ export const TYPES = {
   ICreatePreguntaUseCase: Symbol.for('ICreatePreguntaUseCase'),
   IUpdatePreguntaUseCase: Symbol.for('IUpdatePreguntaUseCase'),
   IDeletePreguntaUseCase: Symbol.for('IDeletePreguntaUseCase'),
+  IImportarCsvPreguntasUseCase: Symbol.for('IImportarCsvPreguntasUseCase'),
 
   // UseCases - Usuarios
   IGetAllRolesUseCase: Symbol.for('IGetAllRolesUseCase'),

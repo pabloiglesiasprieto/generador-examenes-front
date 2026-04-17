@@ -10,9 +10,11 @@ import {
   ICreatePreguntaUseCase,
   IUpdatePreguntaUseCase,
   IDeletePreguntaUseCase,
+  IImportarCsvPreguntasUseCase,
 } from '../../domain/interfaces/useCases/preguntas/IPreguntaUseCase';
 import { PreguntaDTO, PreguntaInput, RespuestaInput } from '../../domain/entities/Pregunta';
 import { validatePreguntasJson, JsonValidationError } from '../utils/validatePreguntasJson';
+import { validatePreguntasCsv } from '../utils/validatePreguntasCsv';
 
 let _keyCounter = 0;
 const nextKey = () => ++_keyCounter;
@@ -63,13 +65,17 @@ export function useQuestionsScreen() {
   const [jsonInput, setJsonInput] = useState<string>('');
   const [jsonErrors, setJsonErrors] = useState<JsonValidationError[]>([]);
   const [jsonImporting, setJsonImporting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'form' | 'json'>('form');
+  const [csvInput, setCsvInput] = useState<string>('');
+  const [csvErrors, setCsvErrors] = useState<JsonValidationError[]>([]);
+  const [csvImporting, setCsvImporting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'form' | 'json' | 'csv'>('form');
 
   const getAllPreguntasUseCase = container.get<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase);
   const getPreguntaByIdUseCase = container.get<IGetPreguntaByIdUseCase>(TYPES.IGetPreguntaByIdUseCase);
   const createPreguntaUseCase = container.get<ICreatePreguntaUseCase>(TYPES.ICreatePreguntaUseCase);
   const updatePreguntaUseCase = container.get<IUpdatePreguntaUseCase>(TYPES.IUpdatePreguntaUseCase);
   const deletePreguntaUseCase = container.get<IDeletePreguntaUseCase>(TYPES.IDeletePreguntaUseCase);
+  const importarCsvUseCase = container.get<IImportarCsvPreguntasUseCase>(TYPES.IImportarCsvPreguntasUseCase);
 
   const loadPreguntas = useCallback(async () => {
     currentPageRef.current = 0;
@@ -122,6 +128,11 @@ export function useQuestionsScreen() {
     setJsonErrors([]);
   };
 
+  const resetCsvTab = () => {
+    setCsvInput('');
+    setCsvErrors([]);
+  };
+
   const openCreate = () => {
     setEditing(null);
     setEnunciado('');
@@ -133,6 +144,7 @@ export function useQuestionsScreen() {
     setDificultad('');
     setCategoria('');
     resetJsonTab();
+    resetCsvTab();
     setActiveTab('form');
     setModalVisible(true);
   };
@@ -160,6 +172,7 @@ export function useQuestionsScreen() {
   const closeModal = () => {
     setModalVisible(false);
     resetJsonTab();
+    resetCsvTab();
     setActiveTab('form');
   };
 
@@ -228,6 +241,27 @@ export function useQuestionsScreen() {
       setJsonErrors([{ path: 'API', message: extractApiError(err, 'Error al importar las preguntas') }]);
     } finally {
       setJsonImporting(false);
+    }
+  };
+
+  const handleCsvImport = async () => {
+    const result = validatePreguntasCsv(csvInput);
+    if (!result.valid) {
+      setCsvErrors(result.errors);
+      return;
+    }
+    setCsvErrors([]);
+    setCsvImporting(true);
+    try {
+      await importarCsvUseCase.execute(csvInput);
+      setModalVisible(false);
+      resetCsvTab();
+      setActiveTab('form');
+      await loadPreguntas();
+    } catch (err: unknown) {
+      setCsvErrors([{ path: 'API', message: extractApiError(err, 'Error al importar el CSV') }]);
+    } finally {
+      setCsvImporting(false);
     }
   };
 
@@ -304,5 +338,10 @@ export function useQuestionsScreen() {
     activeTab,
     setActiveTab,
     handleJsonImport,
+    csvInput,
+    setCsvInput,
+    csvErrors,
+    csvImporting,
+    handleCsvImport,
   };
 }

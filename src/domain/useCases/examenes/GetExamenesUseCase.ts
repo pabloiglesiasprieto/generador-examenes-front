@@ -14,6 +14,7 @@ import {
   IGetEstadisticasExamenesUseCase,
   IGetRankingAlumnosUseCase,
   IGetEstadisticasPreguntasUseCase,
+  IGetCategoriasUseCase,
 } from '../../interfaces/useCases/examenes/IExamenUseCase';
 import { EstadisticaAlumnoDTO, EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../entities/Estadistica';
 import { ExamenDTO, InicioExamenDTO, ResultadoDTO, RespuestaAlumnoDTO } from '../../entities/Examen';
@@ -37,8 +38,16 @@ export class GetExamenByIdUseCase implements IGetExamenByIdUseCase {
 @injectable()
 export class CreateExamenUseCase implements ICreateExamenUseCase {
   constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
-  execute(duracionMinutos?: number): Promise<ExamenDTO> {
-    return this.examenRepository.createExamen(duracionMinutos);
+  execute(duracionMinutos?: number, categoria?: string): Promise<ExamenDTO> {
+    return this.examenRepository.createExamen(duracionMinutos, categoria);
+  }
+}
+
+@injectable()
+export class GetCategoriasUseCase implements IGetCategoriasUseCase {
+  constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
+  execute(): Promise<string[]> {
+    return this.examenRepository.getCategorias();
   }
 }
 

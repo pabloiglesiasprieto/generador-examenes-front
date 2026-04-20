@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IEvaluarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
@@ -107,21 +107,6 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
     }
   };
 
-  const confirmSubmit = (onSuccess: (resultado: unknown, examenId: number) => void) => {
-    if (!hasAnswered) {
-      Alert.alert('Atención', 'Selecciona al menos una respuesta');
-      return;
-    }
-    if (Platform.OS === 'web') {
-      if (window.confirm('¿Estás seguro de enviar tus respuestas?')) submitAnswers(onSuccess);
-    } else {
-      Alert.alert('Enviar examen', '¿Estás seguro de enviar tus respuestas?', [
-        { text: 'Revisar', style: 'cancel' },
-        { text: 'Enviar', onPress: () => submitAnswers(onSuccess) },
-      ]);
-    }
-  };
-
   return {
     currentPregunta,
     totalPreguntas,
@@ -136,7 +121,6 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
     isExpired,
     toggleAnswer,
     goNext,
-    confirmSubmit,
     submitAnswers,
   };
 }

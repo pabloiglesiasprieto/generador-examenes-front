@@ -5,6 +5,7 @@ export interface ExamenDTO {
   autor_id: number;
   fecha_creacion: string;
   duracion_minutos?: number | null;
+  categoria?: string | null;
   preguntas: PreguntaDTO[];
 }
 

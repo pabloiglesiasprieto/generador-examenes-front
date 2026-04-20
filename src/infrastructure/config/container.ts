@@ -36,6 +36,7 @@ import {
   GetEstadisticasExamenesUseCase,
   GetRankingAlumnosUseCase,
   GetEstadisticasPreguntasUseCase,
+  GetCategoriasUseCase,
 } from '../../domain/useCases/examenes/GetExamenesUseCase';
 import {
   IGetExamenesUseCase,
@@ -50,6 +51,7 @@ import {
   IGetEstadisticasExamenesUseCase,
   IGetRankingAlumnosUseCase,
   IGetEstadisticasPreguntasUseCase,
+  IGetCategoriasUseCase,
 } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 
 // UseCases - Preguntas
@@ -132,6 +134,7 @@ container.bind<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase).to(IniciarExa
 container.bind<IGetEstadisticasExamenesUseCase>(TYPES.IGetEstadisticasExamenesUseCase).to(GetEstadisticasExamenesUseCase);
 container.bind<IGetRankingAlumnosUseCase>(TYPES.IGetRankingAlumnosUseCase).to(GetRankingAlumnosUseCase);
 container.bind<IGetEstadisticasPreguntasUseCase>(TYPES.IGetEstadisticasPreguntasUseCase).to(GetEstadisticasPreguntasUseCase);
+container.bind<IGetCategoriasUseCase>(TYPES.IGetCategoriasUseCase).to(GetCategoriasUseCase);
 
 // Bind use cases - Preguntas
 container.bind<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase).to(GetAllPreguntasUseCase);

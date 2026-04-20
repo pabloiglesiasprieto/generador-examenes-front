@@ -23,6 +23,7 @@ export const TYPES = {
   IGetEstadisticasExamenesUseCase: Symbol.for('IGetEstadisticasExamenesUseCase'),
   IGetRankingAlumnosUseCase: Symbol.for('IGetRankingAlumnosUseCase'),
   IGetEstadisticasPreguntasUseCase: Symbol.for('IGetEstadisticasPreguntasUseCase'),
+  IGetCategoriasUseCase: Symbol.for('IGetCategoriasUseCase'),
 
   // UseCases - Preguntas
   IGetAllPreguntasUseCase: Symbol.for('IGetAllPreguntasUseCase'),

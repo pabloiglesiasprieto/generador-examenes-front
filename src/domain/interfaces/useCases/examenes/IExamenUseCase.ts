@@ -10,7 +10,11 @@ export interface IGetExamenByIdUseCase {
 }
 
 export interface ICreateExamenUseCase {
-  execute(duracionMinutos?: number): Promise<ExamenDTO>;
+  execute(duracionMinutos?: number, categoria?: string): Promise<ExamenDTO>;
+}
+
+export interface IGetCategoriasUseCase {
+  execute(): Promise<string[]>;
 }
 
 export interface IIniciarExamenUseCase {

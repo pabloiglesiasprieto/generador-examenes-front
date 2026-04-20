@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
-  Platform,
+  Modal,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { GameStackParamList } from '../navigation/AppNavigator';
@@ -84,6 +84,7 @@ function formatTime(seconds: number): string {
 export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const { examen, isAdminMode = false } = route.params;
   const session = useExamSession(examen, isAdminMode);
+  const [submitModalVisible, setSubmitModalVisible] = useState(false);
 
   const iniciarExamenUseCase = container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase);
 
@@ -118,6 +119,19 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
 
   const handleSubmitSuccess = (resultado: unknown, examenId: number) => {
     navigation.replace('Result', { resultado: resultado as ResultadoDTO, examenId });
+  };
+
+  const handleSubmitPress = () => {
+    if (!session.hasAnswered) {
+      Alert.alert('Atención', 'Selecciona al menos una respuesta');
+      return;
+    }
+    setSubmitModalVisible(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    setSubmitModalVisible(false);
+    session.submitAnswers(handleSubmitSuccess);
   };
 
   return (
@@ -217,12 +231,52 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
             <ExamFooterButton
               session={session}
               isAdminMode={isAdminMode}
-              onSubmit={() => session.confirmSubmit(handleSubmitSuccess)}
+              onSubmit={handleSubmitPress}
               onClose={handleAdminNext}
             />
           </View>
         </>
       )}
+
+      {/* Modal de confirmación de envío */}
+      <Modal
+        visible={submitModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSubmitModalVisible(false)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalIconCircle}>
+              <Text style={styles.modalIcon}>🚀</Text>
+            </View>
+            <Text style={styles.modalTitle}>Enviar examen</Text>
+            <Text style={styles.modalMessage}>
+              ¿Estás seguro de que quieres enviar tus respuestas?{'\n'}
+              Esta acción no se puede deshacer.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setSubmitModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Revisar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirmBtn, session.submitting && styles.btnDisabled]}
+                onPress={handleConfirmSubmit}
+                disabled={session.submitting}
+              >
+                {session.submitting ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.modalConfirmText}>Enviar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -335,4 +389,73 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   backBtnText: { color: '#7C3AED', fontWeight: '700' },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  modalBox: {
+    backgroundColor: '#1A1A2E',
+    borderRadius: 24,
+    padding: 28,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2D2D44',
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 12,
+  },
+  modalIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(16,185,129,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalIcon: { fontSize: 30 },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: '#94A3B8',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  modalCancelBtn: {
+    flex: 1,
+    backgroundColor: '#2D2D44',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  modalCancelText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  modalConfirmBtn: {
+    flex: 1,
+    backgroundColor: '#10B981',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#10B981',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  modalConfirmText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

@@ -16,7 +16,7 @@ import { GameStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
-import { IGetExamenesUseCase, ICreateExamenUseCase, IDeleteExamenUseCase, IGetResultadosAlumnoUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
+import { IGetExamenesUseCase, ICreateExamenUseCase, IDeleteExamenUseCase, IGetResultadosAlumnoUseCase, IGetCategoriasUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { ExamenDTO, ExamNodeInfo } from '../../domain/entities/Examen';
 import ExamNode from '../components/ExamNode';
 
@@ -33,22 +33,33 @@ export default function MapScreen({ navigation }: Props) {
   const { user, isAlumno, isProfesor, isAdmin, signOut } = useAuth();
   const [examenes, setExamenes] = useState<ExamenDTO[]>([]);
   const [nodes, setNodes] = useState<ExamNodeInfo[]>([]);
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [examToDelete, setExamToDelete] = useState<number | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  // Modal de selección de categoría al crear
+  const [categoriaModalVisible, setCategoriaModalVisible] = useState(false);
+  const [categoriasLoading, setCategoriasLoading] = useState(false);
+  const [pendingDuracion] = useState<number | undefined>(undefined);
 
   const getExamenesUseCase = container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase);
   const createExamenUseCase = container.get<ICreateExamenUseCase>(TYPES.ICreateExamenUseCase);
   const deleteExamenUseCase = container.get<IDeleteExamenUseCase>(TYPES.IDeleteExamenUseCase);
   const getResultadosAlumnoUseCase = container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase);
+  const getCategoriasUseCase = container.get<IGetCategoriasUseCase>(TYPES.IGetCategoriasUseCase);
 
   const loadData = useCallback(async () => {
     try {
       const exams = await getExamenesUseCase.execute();
       setExamenes(exams);
+
+      // Cargar categorías disponibles
+      const cats = await getCategoriasUseCase.execute().catch(() => []);
+      setCategorias(cats);
 
       if (isAlumno && user) {
         const allResults = await getResultadosAlumnoUseCase.execute(user.id).catch(() => []);
@@ -96,10 +107,26 @@ export default function MapScreen({ navigation }: Props) {
     }
   };
 
+  // Abrir modal de selección de categoría
   const handleCreate = async () => {
+    setCategoriasLoading(true);
+    setCategoriaModalVisible(true);
+    try {
+      const cats = await getCategoriasUseCase.execute();
+      setCategorias(cats);
+    } catch {
+      // ya tenemos categorias del loadData, seguimos
+    } finally {
+      setCategoriasLoading(false);
+    }
+  };
+
+  // Crear examen con la categoría elegida
+  const handleSelectCategoria = async (categoria: string | null) => {
+    setCategoriaModalVisible(false);
     setCreating(true);
     try {
-      await createExamenUseCase.execute(2);
+      await createExamenUseCase.execute(pendingDuracion, categoria ?? undefined);
       await loadData();
     } catch (err: unknown) {
       const msg =
@@ -130,8 +157,13 @@ export default function MapScreen({ navigation }: Props) {
     }
   };
 
-  const totalStars = nodes.reduce((acc, n) => acc + n.stars, 0);
-  const completedCount = nodes.filter((n) => n.status === 'completed').length;
+  // Filtrar nodos por categoría seleccionada
+  const filteredNodes = selectedCategoria
+    ? nodes.filter((n) => n.examen.categoria === selectedCategoria)
+    : nodes;
+
+  const totalStars = filteredNodes.reduce((acc, n) => acc + n.stars, 0);
+  const completedCount = filteredNodes.filter((n) => n.status === 'completed').length;
 
   if (loading) {
     return (
@@ -152,7 +184,7 @@ export default function MapScreen({ navigation }: Props) {
           </Text>
           <Text style={styles.headerSub}>
             {isAlumno
-              ? `${completedCount}/${nodes.length} completados · ${totalStars}⭐`
+              ? `${completedCount}/${filteredNodes.length} completados · ${totalStars}⭐`
               : isAdmin
               ? 'Panel de administrador'
               : 'Panel de profesor'}
@@ -163,19 +195,49 @@ export default function MapScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
 
+      {/* Filtro por categoría */}
+      {categorias.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriaBar}
+          contentContainerStyle={styles.categoriaBarContent}
+        >
+          <TouchableOpacity
+            style={[styles.categoriaChip, selectedCategoria === null && styles.categoriaChipActive]}
+            onPress={() => setSelectedCategoria(null)}
+          >
+            <Text style={[styles.categoriaChipText, selectedCategoria === null && styles.categoriaChipTextActive]}>
+              Todas
+            </Text>
+          </TouchableOpacity>
+          {categorias.map((cat) => (
+            <TouchableOpacity
+              key={cat}
+              style={[styles.categoriaChip, selectedCategoria === cat && styles.categoriaChipActive]}
+              onPress={() => setSelectedCategoria(cat)}
+            >
+              <Text style={[styles.categoriaChipText, selectedCategoria === cat && styles.categoriaChipTextActive]}>
+                {cat}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+
       {/* Progress bar for alumno */}
-      {isAlumno && nodes.length > 0 && (
+      {isAlumno && filteredNodes.length > 0 && (
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View
               style={[
                 styles.progressFill,
-                { width: `${(completedCount / nodes.length) * 100}%` },
+                { width: `${(completedCount / filteredNodes.length) * 100}%` },
               ]}
             />
           </View>
           <Text style={styles.progressText}>
-            {Math.round((completedCount / nodes.length) * 100)}% completado
+            {Math.round((completedCount / filteredNodes.length) * 100)}% completado
           </Text>
         </View>
       )}
@@ -196,11 +258,15 @@ export default function MapScreen({ navigation }: Props) {
       )}
 
       {/* Map */}
-      {nodes.length === 0 ? (
+      {filteredNodes.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyEmoji}>📭</Text>
-          <Text style={styles.emptyText}>No hay exámenes disponibles</Text>
-          {(isProfesor || isAdmin) && (
+          <Text style={styles.emptyText}>
+            {selectedCategoria
+              ? `No hay exámenes en "${selectedCategoria}"`
+              : 'No hay exámenes disponibles'}
+          </Text>
+          {(isProfesor || isAdmin) && !selectedCategoria && (
             <Text style={styles.emptyHint}>Pulsa el botón para generar uno</Text>
           )}
         </View>
@@ -222,7 +288,7 @@ export default function MapScreen({ navigation }: Props) {
             </View>
           </View>
 
-          {nodes.map((info, index) => (
+          {filteredNodes.map((info, index) => (
             <View key={`exam-${info.examen.id}-${index}`}>
               <View style={styles.pathLine} />
               <ExamNode
@@ -244,6 +310,51 @@ export default function MapScreen({ navigation }: Props) {
           <View style={{ height: 60 }} />
         </ScrollView>
       )}
+
+      {/* Modal selección de categoría al crear examen */}
+      <Modal
+        visible={categoriaModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCategoriaModalVisible(false)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Selecciona una categoría</Text>
+            <Text style={styles.modalMessage}>
+              El examen se creará con preguntas de la categoría elegida.
+            </Text>
+            {categoriasLoading ? (
+              <ActivityIndicator color="#7C3AED" style={{ marginVertical: 16 }} />
+            ) : (
+              <ScrollView style={styles.categoriaList} showsVerticalScrollIndicator={false}>
+                <TouchableOpacity
+                  style={styles.categoriaItem}
+                  onPress={() => handleSelectCategoria(null)}
+                >
+                  <Text style={styles.categoriaItemText}>Todas las categorías</Text>
+                </TouchableOpacity>
+                {categorias.map((cat) => (
+                  <TouchableOpacity
+                    key={cat}
+                    style={styles.categoriaItem}
+                    onPress={() => handleSelectCategoria(cat)}
+                  >
+                    <Text style={styles.categoriaItemText}>{cat}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => setCategoriaModalVisible(false)}
+            >
+              <Text style={styles.cancelBtnText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Delete confirmation modal */}
       <Modal
         visible={deleteModalVisible}
@@ -313,6 +424,33 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   logoutText: { color: '#EF4444', fontSize: 13, fontWeight: '600' },
+  categoriaBar: {
+    backgroundColor: '#1A1A2E',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2D2D44',
+    maxHeight: 52,
+  },
+  categoriaBarContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  categoriaChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#2D2D44',
+    borderWidth: 1,
+    borderColor: '#2D2D44',
+  },
+  categoriaChipActive: {
+    backgroundColor: 'rgba(124,58,237,0.2)',
+    borderColor: '#7C3AED',
+  },
+  categoriaChipText: { color: '#94A3B8', fontSize: 13, fontWeight: '600' },
+  categoriaChipTextActive: { color: '#7C3AED' },
   progressContainer: {
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -417,7 +555,25 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     textAlign: 'center',
     lineHeight: 22,
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  categoriaList: {
+    width: '100%',
+    maxHeight: 220,
+    marginBottom: 16,
+  },
+  categoriaItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#2D2D44',
+    marginBottom: 8,
+  },
+  categoriaItemText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   modalActions: {
     flexDirection: 'row',

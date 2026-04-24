@@ -19,17 +19,6 @@ import { IIniciarExamenUseCase } from '../../domain/interfaces/useCases/examenes
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Exam'>;
 
-function confirmQuit(onConfirm: () => void) {
-  if (Platform.OS === 'web') {
-    if (globalThis.confirm('Perderás tu progreso. ¿Salir?')) onConfirm();
-  } else {
-    Alert.alert('Salir del examen', 'Perderás tu progreso. ¿Salir?', [
-      { text: 'Continuar', style: 'cancel' },
-      { text: 'Salir', style: 'destructive', onPress: onConfirm },
-    ]);
-  }
-}
-
 function ExamFooterButton({
   session,
   isAdminMode,
@@ -85,6 +74,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const { examen, isAdminMode = false } = route.params;
   const session = useExamSession(examen, isAdminMode);
   const [submitModalVisible, setSubmitModalVisible] = useState(false);
+  const [quitModalVisible, setQuitModalVisible] = useState(false);
 
   const iniciarExamenUseCase = container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase);
 
@@ -108,7 +98,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
     if (isAdminMode) {
       navigation.goBack();
     } else {
-      confirmQuit(() => navigation.goBack());
+      setQuitModalVisible(true);
     }
   };
 
@@ -237,6 +227,40 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
           </View>
         </>
       )}
+
+      {/* Modal de confirmación de salida */}
+      <Modal
+        visible={quitModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQuitModalVisible(false)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalIconCircle}>
+              <Text style={styles.modalIcon}>⚠️</Text>
+            </View>
+            <Text style={styles.modalTitle}>Salir del examen</Text>
+            <Text style={styles.modalMessage}>
+              Perderás todo tu progreso.{'\n'}¿Estás seguro de que quieres salir?
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setQuitModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Continuar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirmBtn, { backgroundColor: '#EF4444', shadowColor: '#EF4444' }]}
+                onPress={() => { setQuitModalVisible(false); navigation.goBack(); }}
+              >
+                <Text style={styles.modalConfirmText}>Salir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal de confirmación de envío */}
       <Modal

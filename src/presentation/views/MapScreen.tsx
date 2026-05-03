@@ -582,12 +582,15 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: '#2D2D44',
+    backgroundColor: 'transparent',
     paddingVertical: 14,
+    paddingHorizontal: 32,
     borderRadius: 12,
     alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#7C3AED',
   },
-  cancelBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  cancelBtnText: { color: '#7C3AED', fontWeight: '700', fontSize: 15 },
   confirmBtn: {
     flex: 1,
     backgroundColor: '#EF4444',

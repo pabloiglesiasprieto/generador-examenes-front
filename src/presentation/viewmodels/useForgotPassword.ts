@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import apiClient from '../../data/apiconnection/apiClient';
 
-type ForgotStep = 1 | 2;
+type ForgotStep = 1 | 2 | 3;
 
 interface ForgotPasswordState {
   show: boolean;
   step: ForgotStep;
   correo: string;
+  codigo: string;
   password: string;
   confirm: string;
   loading: boolean;
@@ -19,6 +20,7 @@ const INITIAL_STATE: ForgotPasswordState = {
   show: false,
   step: 1,
   correo: '',
+  codigo: '',
   password: '',
   confirm: '',
   loading: false,
@@ -33,21 +35,49 @@ export function useForgotPassword() {
   const set = <K extends keyof ForgotPasswordState>(key: K, value: ForgotPasswordState[K]) =>
     setState((prev) => ({ ...prev, [key]: value }));
 
-  const open = () =>
-    setState({ ...INITIAL_STATE, show: true });
+  const open = () => setState({ ...INITIAL_STATE, show: true });
 
   const close = () => set('show', false);
 
-  const goNext = () => {
+  const goBack = () =>
+    setState((prev) => ({ ...prev, step: (prev.step > 1 ? prev.step - 1 : 1) as ForgotStep, error: '' }));
+
+  // Paso 1: solicitar código al backend
+  const requestCode = async () => {
     if (!state.correo.trim()) {
       set('error', 'Introduce tu correo electrónico');
       return;
     }
-    setState((prev) => ({ ...prev, error: '', step: 2 }));
+    setState((prev) => ({ ...prev, loading: true, error: '' }));
+    try {
+      await apiClient.post('/auth/solicitar-recuperacion', {
+        correo_usuario: state.correo.trim(),
+      });
+      setState((prev) => ({ ...prev, loading: false, step: 2 }));
+    } catch {
+      setState((prev) => ({ ...prev, loading: false, error: 'No se pudo enviar el código. Inténtalo de nuevo.' }));
+    }
   };
 
-  const goBack = () => set('step', 1);
+  // Paso 2: validar el código contra el backend y pasar al paso 3 solo si es correcto
+  const goToNewPassword = async () => {
+    if (!state.codigo.trim()) {
+      set('error', 'Introduce el código que recibiste por correo');
+      return;
+    }
+    setState((prev) => ({ ...prev, loading: true, error: '' }));
+    try {
+      await apiClient.post('/auth/verificar-codigo', {
+        correo_usuario: state.correo.trim(),
+        codigo: state.codigo.trim(),
+      });
+      setState((prev) => ({ ...prev, loading: false, step: 3 }));
+    } catch {
+      setState((prev) => ({ ...prev, loading: false, error: 'Código inválido o expirado. Vuelve a intentarlo.' }));
+    }
+  };
 
+  // Paso 3: confirmar código + nueva contraseña
   const submit = async () => {
     if (!state.password.trim() || !state.confirm.trim()) {
       set('error', 'Completa todos los campos');
@@ -59,15 +89,14 @@ export function useForgotPassword() {
     }
     setState((prev) => ({ ...prev, loading: true, error: '' }));
     try {
-      await apiClient.put('/auth/cambiar-contrasena', {
-        correo: state.correo.trim(),
-        nuevaContrasena: state.password,
+      await apiClient.post('/auth/confirmar-recuperacion', {
+        correo_usuario: state.correo.trim(),
+        codigo: state.codigo.trim(),
+        nueva_contrasena: state.password,
       });
       close();
     } catch {
-      set('error', 'No se pudo cambiar la contraseña. Verifica el correo.');
-    } finally {
-      set('loading', false);
+      setState((prev) => ({ ...prev, loading: false, error: 'Código inválido o expirado. Vuelve a intentarlo.' }));
     }
   };
 
@@ -75,10 +104,12 @@ export function useForgotPassword() {
     ...state,
     open,
     close,
-    goNext,
     goBack,
+    requestCode,
+    goToNewPassword,
     submit,
     setCorreo: (v: string) => set('correo', v),
+    setCodigo: (v: string) => set('codigo', v),
     setPassword: (v: string) => set('password', v),
     setConfirm: (v: string) => set('confirm', v),
     toggleShowPassword: () => set('showPassword', !state.showPassword),

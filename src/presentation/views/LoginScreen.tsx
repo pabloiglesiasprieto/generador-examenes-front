@@ -164,11 +164,11 @@ export default function LoginScreen({ navigation }: Props) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Cambiar contraseña</Text>
+            <Text style={styles.modalTitle}>Recuperar contraseña</Text>
 
-            {forgot.step === 1 ? (
+            {forgot.step === 1 && (
               <>
-                <Text style={styles.modalSub}>Introduce tu correo electrónico</Text>
+                <Text style={styles.modalSub}>Introduce tu correo y te enviaremos un código de verificación</Text>
                 <TextInput
                   style={styles.modalInput}
                   placeholder="tu@correo.com"
@@ -184,14 +184,49 @@ export default function LoginScreen({ navigation }: Props) {
                   <TouchableOpacity style={styles.modalCancelBtn} onPress={forgot.close}>
                     <Text style={styles.modalCancelText}>Cancelar</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalConfirmBtn} onPress={forgot.goNext}>
+                  <TouchableOpacity
+                    style={[styles.modalConfirmBtn, forgot.loading && { opacity: 0.6 }]}
+                    onPress={() => void forgot.requestCode()}
+                    disabled={forgot.loading}
+                  >
+                    {forgot.loading
+                      ? <ActivityIndicator color="#fff" size="small" />
+                      : <Text style={styles.modalConfirmText}>Enviar código</Text>}
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+
+            {forgot.step === 2 && (
+              <>
+                <Text style={styles.modalSub}>
+                  Introduce el código de 6 dígitos enviado a {forgot.correo}
+                </Text>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="000000"
+                  placeholderTextColor="#555"
+                  value={forgot.codigo}
+                  onChangeText={forgot.setCodigo}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  autoCorrect={false}
+                />
+                {forgot.error ? <Text style={styles.errorText}>{forgot.error}</Text> : null}
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={styles.modalCancelBtn} onPress={forgot.goBack}>
+                    <Text style={styles.modalCancelText}>Atrás</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalConfirmBtn} onPress={forgot.goToNewPassword}>
                     <Text style={styles.modalConfirmText}>Siguiente</Text>
                   </TouchableOpacity>
                 </View>
               </>
-            ) : (
+            )}
+
+            {forgot.step === 3 && (
               <>
-                <Text style={styles.modalSub}>Nueva contraseña para {forgot.correo}</Text>
+                <Text style={styles.modalSub}>Establece tu nueva contraseña</Text>
                 <PasswordInput
                   value={forgot.password}
                   onChangeText={forgot.setPassword}

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import { JwtPayload } from '../../domain/entities/Auth';
 
-export const API_BASE_URL = 'https://easy-onions-stay.loca.lt'; // <- reemplaza con tu URL de localtunnel
+export const API_BASE_URL = 'http://localhost:8080'; // <- reemplaza con tu URL de localtunnel
 
 // Callback registrado por AuthContext para cerrar sesión desde fuera de React
 let onUnauthorized: (() => void) | null = null;

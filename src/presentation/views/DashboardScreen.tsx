@@ -132,6 +132,9 @@ export default function DashboardScreen({ navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.body}>
       <View style={styles.pageHeader}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>← Volver</Text>
+        </TouchableOpacity>
         <Text style={styles.pageTitle}>Dashboard</Text>
         <Text style={styles.pageSubtitle}>Estadísticas del sistema</Text>
       </View>
@@ -188,6 +191,8 @@ const styles = StyleSheet.create({
   retryBtn: { backgroundColor: '#7C3AED', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 },
   retryText: { color: '#fff', fontWeight: '700' },
   pageHeader: { marginBottom: 8 },
+  backBtn: { marginBottom: 12 },
+  backBtnText: { color: '#7C3AED', fontSize: 15, fontWeight: '700' },
   pageTitle: { fontSize: 28, fontWeight: '800', color: '#FFFFFF' },
   pageSubtitle: { fontSize: 14, color: '#64748B', marginTop: 4 },
   section: { gap: 12 },

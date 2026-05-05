@@ -11,7 +11,9 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AdminStackParamList } from '../navigation/AppNavigator';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import {
@@ -27,6 +29,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function IncidenciasScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const [incidencias, setIncidencias] = useState<IncidenciaDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<IncidenciaDTO | null>(null);
@@ -83,8 +86,13 @@ export default function IncidenciasScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Incidencias</Text>
-        <Text style={styles.headerCount}>{incidencias.length}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>← Volver</Text>
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Incidencias</Text>
+          <Text style={styles.headerCount}>{incidencias.length}</Text>
+        </View>
       </View>
 
       <View style={styles.filterRow}>
@@ -196,15 +204,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D1A' },
   center: { flex: 1, backgroundColor: '#0D0D1A', justifyContent: 'center', alignItems: 'center' },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
     paddingHorizontal: 20,
     paddingTop: 56,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backBtn: { marginBottom: 8 },
+  backBtnText: { color: '#7C3AED', fontSize: 15, fontWeight: '700' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
   headerCount: {
     backgroundColor: '#EF4444',

@@ -21,12 +21,16 @@ export interface JwtPayload {
   sub: string;
   roles: string[];
   correo_usuario: string;
+  nombre_usuario?: string;
+  apellido_usuario?: string;
   exp: number;
 }
 
 export interface AuthUser {
   id: number;
   email: string;
+  nombre?: string;
+  apellido?: string;
   roles: string[];
   token: string;
 }

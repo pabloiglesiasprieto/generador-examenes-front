@@ -130,7 +130,7 @@ export default function AppNavigator() {
     >
       <Tab.Screen name="GameTab" component={GameNavigator} />
       <Tab.Screen name="ProfileTab" component={ProfileNavigator} />
-      {showAdminTab && <Tab.Screen name="AdminTab" component={AdminNavigator} />}
+      {showAdminTab && <Tab.Screen name="AdminTab" component={AdminNavigator} options={{ unmountOnBlur: true }} />}
     </Tab.Navigator>
   );
 }

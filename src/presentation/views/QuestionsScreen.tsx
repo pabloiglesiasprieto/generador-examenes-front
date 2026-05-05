@@ -12,6 +12,9 @@ import {
   Switch,
   Platform,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useQuestionsScreen } from '../viewmodels/useQuestionsScreen';
 import { JsonValidationError } from '../utils/validatePreguntasJson';
 import { PreguntaDTO, RespuestaInput } from '../../domain/entities/Pregunta';
@@ -286,6 +289,7 @@ function CsvTab({ q }: Readonly<{ q: QState }>) {
 }
 
 export default function QuestionsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const q = useQuestionsScreen();
 
   return (
@@ -299,10 +303,15 @@ export default function QuestionsScreen() {
       {!q.loading && (
         <>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Preguntas</Text>
-            <TouchableOpacity style={styles.addBtn} onPress={q.openCreate}>
-              <Text style={styles.addBtnText}>+ Nueva</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Text style={styles.backBtnText}>← Volver</Text>
             </TouchableOpacity>
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>Preguntas</Text>
+              <TouchableOpacity style={styles.addBtn} onPress={q.openCreate}>
+                <Text style={styles.addBtnText}>+ Nueva</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Barra de filtros */}
@@ -455,15 +464,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D1A' },
   center: { flex: 1, backgroundColor: '#0D0D1A', justifyContent: 'center', alignItems: 'center' },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
     paddingHorizontal: 20,
     paddingTop: 56,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backBtn: { marginBottom: 8 },
+  backBtnText: { color: '#7C3AED', fontSize: 15, fontWeight: '700' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
   addBtn: { backgroundColor: '#7C3AED', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
   addBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },

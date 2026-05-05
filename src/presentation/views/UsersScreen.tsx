@@ -9,6 +9,9 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
 import { useUsersScreen } from '../viewmodels/useUsersScreen';
 import { UsuarioDTO, RolDTO } from '../../domain/entities/Usuario';
@@ -66,6 +69,7 @@ function RolRow({
 }
 
 export default function UsersScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const { user: me } = useAuth();
   const {
     usuarios,
@@ -92,8 +96,13 @@ export default function UsersScreen() {
       {!loading && (
         <>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Usuarios</Text>
-            <Text style={styles.headerCount}>{usuarios.length}</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Text style={styles.backBtnText}>← Volver</Text>
+            </TouchableOpacity>
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>Usuarios</Text>
+              <Text style={styles.headerCount}>{usuarios.length}</Text>
+            </View>
           </View>
 
           <FlatList
@@ -151,15 +160,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D1A' },
   center: { flex: 1, backgroundColor: '#0D0D1A', justifyContent: 'center', alignItems: 'center' },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
     paddingHorizontal: 20,
     paddingTop: 56,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backBtn: { marginBottom: 8 },
+  backBtnText: { color: '#7C3AED', fontSize: 15, fontWeight: '700' },
   headerTitle: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
   headerCount: {
     backgroundColor: '#7C3AED',

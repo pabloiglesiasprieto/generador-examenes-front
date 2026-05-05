@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const payload = jwtDecode<JwtPayload>(token);
           if (payload.exp * 1000 > Date.now()) {
-            setUser({ id: payload.id_usuario, email: payload.correo_usuario, roles: payload.roles, token });
+            setUser({ id: payload.id_usuario, email: payload.correo_usuario, nombre: payload.nombre_usuario, apellido: payload.apellido_usuario, roles: payload.roles, token });
           } else {
             AsyncStorage.removeItem('token');
           }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (token: string) => {
     const payload = jwtDecode<JwtPayload>(token);
     await AsyncStorage.setItem('token', token);
-    setUser({ id: payload.id_usuario, email: payload.correo_usuario, roles: payload.roles, token });
+    setUser({ id: payload.id_usuario, email: payload.correo_usuario, nombre: payload.nombre_usuario, apellido: payload.apellido_usuario, roles: payload.roles, token });
   };
 
   const signOut = async () => {

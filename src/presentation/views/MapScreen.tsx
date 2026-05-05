@@ -9,7 +9,10 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
+  Dimensions,
 } from 'react-native';
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { GameStackParamList } from '../navigation/AppNavigator';
@@ -17,6 +20,7 @@ import { useAuth } from '../viewmodels/AuthContext';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IGetExamenesUseCase, ICreateExamenUseCase, IDeleteExamenUseCase, IGetResultadosAlumnoUseCase, IGetCategoriasUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
+import { IGetUsuarioByIdUseCase } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { ExamenDTO, ExamNodeInfo } from '../../domain/entities/Examen';
 import ExamNode from '../components/ExamNode';
 
@@ -45,12 +49,21 @@ export default function MapScreen({ navigation }: Props) {
   const [categoriaModalVisible, setCategoriaModalVisible] = useState(false);
   const [categoriasLoading, setCategoriasLoading] = useState(false);
   const [pendingDuracion] = useState<number | undefined>(undefined);
+  const [nombreCompleto, setNombreCompleto] = useState<string | null>(null);
 
   const getExamenesUseCase = container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase);
   const createExamenUseCase = container.get<ICreateExamenUseCase>(TYPES.ICreateExamenUseCase);
   const deleteExamenUseCase = container.get<IDeleteExamenUseCase>(TYPES.IDeleteExamenUseCase);
   const getResultadosAlumnoUseCase = container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase);
   const getCategoriasUseCase = container.get<IGetCategoriasUseCase>(TYPES.IGetCategoriasUseCase);
+  const getUsuarioByIdUseCase = container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase);
+
+  useEffect(() => {
+    if (!user) return;
+    getUsuarioByIdUseCase.execute(user.id)
+      .then((u) => setNombreCompleto(`${u.nombre_usuario} ${u.apellido_usuario}`))
+      .catch(() => {});
+  }, [user?.id]);
 
   const loadData = useCallback(async () => {
     try {
@@ -180,7 +193,7 @@ export default function MapScreen({ navigation }: Props) {
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.greeting}>
-            Hola, <Text style={styles.greetingName}>{user?.email.split('@')[0]}</Text>
+            Hola, <Text style={styles.greetingName}>{nombreCompleto ?? user?.email.split('@')[0]}</Text>
           </Text>
           <Text style={styles.headerSub}>
             {isAlumno
@@ -346,7 +359,7 @@ export default function MapScreen({ navigation }: Props) {
               </ScrollView>
             )}
             <TouchableOpacity
-              style={styles.cancelBtn}
+              style={[styles.cancelBtn, { width: '100%', flex: undefined }]}
               onPress={() => setCategoriaModalVisible(false)}
             >
               <Text style={styles.cancelBtnText}>Cancelar</Text>
@@ -428,11 +441,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A2E',
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
-    maxHeight: 52,
+    maxHeight: 62,
   },
   categoriaBarContent: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     gap: 8,
     flexDirection: 'row',
     alignItems: 'center',
@@ -559,7 +572,7 @@ const styles = StyleSheet.create({
   },
   categoriaList: {
     width: '100%',
-    maxHeight: 220,
+    maxHeight: 180,
     marginBottom: 16,
   },
   categoriaItem: {

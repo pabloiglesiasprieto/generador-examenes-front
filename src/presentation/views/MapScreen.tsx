@@ -52,6 +52,7 @@ export default function MapScreen({ navigation }: Props) {
   // Modal de selección de número de preguntas
   const [numPreguntasModalVisible, setNumPreguntasModalVisible] = useState(false);
   const [pendingCategoria, setPendingCategoria] = useState<string | null | undefined>(undefined);
+  const [errorModalMessage, setErrorModalMessage] = useState<string | null>(null);
   const [nombreCompleto, setNombreCompleto] = useState<string | null>(null);
 
   const getExamenesUseCase = container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase);
@@ -155,7 +156,7 @@ export default function MapScreen({ navigation }: Props) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'No se pudo crear el examen';
-      Alert.alert('Error', msg);
+      setErrorModalMessage(msg);
     } finally {
       setCreating(false);
     }
@@ -412,6 +413,30 @@ export default function MapScreen({ navigation }: Props) {
               onPress={() => setNumPreguntasModalVisible(false)}
             >
               <Text style={styles.cancelBtnText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error modal */}
+      <Modal
+        visible={errorModalMessage !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setErrorModalMessage(null)}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modalBox}>
+            <View style={[styles.modalIconCircle, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
+              <Text style={styles.modalIcon}>⚠️</Text>
+            </View>
+            <Text style={styles.modalTitle}>No se pudo crear el examen</Text>
+            <Text style={styles.modalMessage}>{errorModalMessage}</Text>
+            <TouchableOpacity
+              style={[styles.confirmBtn, { width: '100%', flex: undefined }]}
+              onPress={() => setErrorModalMessage(null)}
+            >
+              <Text style={styles.confirmBtnText}>Entendido</Text>
             </TouchableOpacity>
           </View>
         </View>

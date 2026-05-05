@@ -15,8 +15,8 @@ function getStarsFilled(stars: number) {
 }
 
 function getDifficulty(qCount: number) {
-  if (qCount >= 15) return { label: 'Difícil', color: '#EF4444' };
-  if (qCount >= 8) return { label: 'Medio', color: '#F59E0B' };
+  if (qCount >= 30) return { label: 'Difícil', color: '#EF4444' };
+  if (qCount >= 20) return { label: 'Medio', color: '#F59E0B' };
   return { label: 'Fácil', color: '#10B981' };
 }
 

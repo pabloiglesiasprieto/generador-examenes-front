@@ -4,7 +4,7 @@ import { ExamenDTO, InicioExamenDTO, ResultadoDTO, RespuestaAlumnoDTO } from '..
 export interface IExamenRepository {
   getExamenes(sortBy?: string, order?: string): Promise<ExamenDTO[]>;
   getExamenById(id: number): Promise<ExamenDTO>;
-  createExamen(duracionMinutos?: number, categoria?: string): Promise<ExamenDTO>;
+  createExamen(duracionMinutos?: number, categoria?: string, numPreguntas?: number): Promise<ExamenDTO>;
   getCategorias(): Promise<string[]>;
   iniciarExamen(id: number): Promise<InicioExamenDTO>;
   deleteExamen(id: number): Promise<void>;

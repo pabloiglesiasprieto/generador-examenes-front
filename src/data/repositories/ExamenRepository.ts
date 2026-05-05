@@ -14,10 +14,11 @@ export class ExamenRepository implements IExamenRepository {
     return apiClient.get<ExamenDTO>(`/examenes/${id}`).then((r) => r.data);
   }
 
-  createExamen(duracionMinutos?: number, categoria?: string): Promise<ExamenDTO> {
+  createExamen(duracionMinutos?: number, categoria?: string, numPreguntas?: number): Promise<ExamenDTO> {
     const params: Record<string, unknown> = {};
     if (duracionMinutos != null) params.duracionMinutos = duracionMinutos;
     if (categoria != null) params.categoria = categoria;
+    if (numPreguntas != null) params.numPreguntas = numPreguntas;
     return apiClient.post<ExamenDTO>('/examenes', null, { params }).then((r) => r.data);
   }
 

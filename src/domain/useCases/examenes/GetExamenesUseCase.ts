@@ -38,8 +38,8 @@ export class GetExamenByIdUseCase implements IGetExamenByIdUseCase {
 @injectable()
 export class CreateExamenUseCase implements ICreateExamenUseCase {
   constructor(@inject(TYPES.IExamenRepository) private examenRepository: IExamenRepository) {}
-  execute(duracionMinutos?: number, categoria?: string): Promise<ExamenDTO> {
-    return this.examenRepository.createExamen(duracionMinutos, categoria);
+  execute(duracionMinutos?: number, categoria?: string, numPreguntas?: number): Promise<ExamenDTO> {
+    return this.examenRepository.createExamen(duracionMinutos, categoria, numPreguntas);
   }
 }
 

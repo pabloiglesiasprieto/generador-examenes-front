@@ -54,8 +54,12 @@ export function useForgotPassword() {
         correo_usuario: state.correo.trim(),
       });
       setState((prev) => ({ ...prev, loading: false, step: 2 }));
-    } catch {
-      setState((prev) => ({ ...prev, loading: false, error: 'No se pudo enviar el código. Inténtalo de nuevo.' }));
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const msg = status === 404
+        ? 'No existe ningún usuario registrado con ese correo electrónico'
+        : 'No se pudo enviar el código. Inténtalo de nuevo.';
+      setState((prev) => ({ ...prev, loading: false, error: msg }));
     }
   };
 

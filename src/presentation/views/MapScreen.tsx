@@ -441,7 +441,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A2E',
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
-    maxHeight: 62,
+    flexShrink: 0,
+    flexGrow: 0,
   },
   categoriaBarContent: {
     paddingHorizontal: 16,

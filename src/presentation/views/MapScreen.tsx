@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   Modal,
@@ -52,7 +51,8 @@ export default function MapScreen({ navigation }: Props) {
   // Modal de selección de número de preguntas
   const [numPreguntasModalVisible, setNumPreguntasModalVisible] = useState(false);
   const [pendingCategoria, setPendingCategoria] = useState<string | null | undefined>(undefined);
-  const [errorModalMessage, setErrorModalMessage] = useState<string | null>(null);
+  const [numPreguntasError, setNumPreguntasError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [nombreCompleto, setNombreCompleto] = useState<string | null>(null);
 
   const getExamenesUseCase = container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase);
@@ -70,6 +70,7 @@ export default function MapScreen({ navigation }: Props) {
   }, [user?.id]);
 
   const loadData = useCallback(async () => {
+    setLoadError(false);
     try {
       const exams = await getExamenesUseCase.execute();
       setExamenes(exams);
@@ -97,7 +98,7 @@ export default function MapScreen({ navigation }: Props) {
         );
       }
     } catch {
-      Alert.alert('Error', 'No se pudieron cargar los exámenes');
+      setLoadError(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -142,21 +143,23 @@ export default function MapScreen({ navigation }: Props) {
   const handleSelectCategoria = (categoria: string | null) => {
     setCategoriaModalVisible(false);
     setPendingCategoria(categoria);
+    setNumPreguntasError(null);
     setNumPreguntasModalVisible(true);
   };
 
   // Crear examen con categoría y número de preguntas elegidos
   const handleSelectNumPreguntas = async (numPreguntas: 10 | 20 | 30) => {
-    setNumPreguntasModalVisible(false);
+    setNumPreguntasError(null);
     setCreating(true);
     try {
       await createExamenUseCase.execute(pendingDuracion, pendingCategoria ?? undefined, numPreguntas);
+      setNumPreguntasModalVisible(false);
       await loadData();
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'No se pudo crear el examen';
-      setErrorModalMessage(msg);
+      setNumPreguntasError(msg);
     } finally {
       setCreating(false);
     }
@@ -194,6 +197,22 @@ export default function MapScreen({ navigation }: Props) {
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#7C3AED" />
         <Text style={styles.loadingText}>Cargando mapa...</Text>
+      </View>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ fontSize: 16, color: '#EF4444', marginBottom: 16, textAlign: 'center' }}>
+          No se pudieron cargar los exámenes.{'\n'}Comprueba tu conexión e inténtalo de nuevo.
+        </Text>
+        <TouchableOpacity
+          style={{ backgroundColor: '#7C3AED', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
+          onPress={() => { setLoading(true); loadData(); }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '600' }}>Reintentar</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -408,35 +427,14 @@ export default function MapScreen({ navigation }: Props) {
                 </View>
               </TouchableOpacity>
             ))}
+            {numPreguntasError && (
+              <Text style={[styles.modalMessage, { color: '#EF4444', marginTop: 8 }]}>{numPreguntasError}</Text>
+            )}
             <TouchableOpacity
               style={[styles.cancelBtn, { width: '100%', flex: undefined, marginTop: 8 }]}
-              onPress={() => setNumPreguntasModalVisible(false)}
+              onPress={() => { setNumPreguntasModalVisible(false); setNumPreguntasError(null); }}
             >
               <Text style={styles.cancelBtnText}>Cancelar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Error modal */}
-      <Modal
-        visible={errorModalMessage !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setErrorModalMessage(null)}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.modalBox}>
-            <View style={[styles.modalIconCircle, { backgroundColor: 'rgba(239,68,68,0.15)' }]}>
-              <Text style={styles.modalIcon}>⚠️</Text>
-            </View>
-            <Text style={styles.modalTitle}>No se pudo crear el examen</Text>
-            <Text style={styles.modalMessage}>{errorModalMessage}</Text>
-            <TouchableOpacity
-              style={[styles.confirmBtn, { width: '100%', flex: undefined }]}
-              onPress={() => setErrorModalMessage(null)}
-            >
-              <Text style={styles.confirmBtnText}>Entendido</Text>
             </TouchableOpacity>
           </View>
         </View>

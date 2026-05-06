@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
@@ -41,18 +42,21 @@ export default function ProfileScreen({ navigation }: Props) {
   const updateUsuarioUseCase = container.get<IUpdateUsuarioUseCase>(TYPES.IUpdateUsuarioUseCase);
   const exportExamenesUseCase = container.get<IExportExamenesUseCase>(TYPES.IExportExamenesUseCase);
 
-  useEffect(() => {
-    if (!user) return;
-    Promise.all([
-      getUsuarioByIdUseCase.execute(user.id).catch(() => null),
-      isAlumno ? getResultadosAlumnoUseCase.execute(user.id).catch(() => []) : Promise.resolve([]),
-    ])
-      .then(([u, r]) => {
-        if (u) setUsuario(u as UsuarioDTO);
-        setResultados(r as ResultadoDTO[]);
-      })
-      .finally(() => setLoading(false));
-  }, [user, isAlumno]);
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      setLoading(true);
+      Promise.all([
+        getUsuarioByIdUseCase.execute(user.id).catch(() => null),
+        isAlumno ? getResultadosAlumnoUseCase.execute(user.id).catch(() => []) : Promise.resolve([]),
+      ])
+        .then(([u, r]) => {
+          if (u) setUsuario(u as UsuarioDTO);
+          setResultados(r as ResultadoDTO[]);
+        })
+        .finally(() => setLoading(false));
+    }, [user, isAlumno]),
+  );
 
   const avgNota =
     resultados.length > 0

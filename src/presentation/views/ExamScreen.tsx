@@ -77,6 +77,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const [quitModalVisible, setQuitModalVisible] = useState(false);
 
   const iniciarExamenUseCase = container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase);
+  const autoSubmittedRef = useRef(false);
 
   // Registrar inicio en backend (solo para alumnos, para calcular tiempo_segundos)
   useEffect(() => {
@@ -85,9 +86,10 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
     }
   }, [examen.id, isAdminMode]);
 
-  // Auto-submit cuando expira el tiempo
+  // Auto-submit cuando expira el tiempo (solo una vez)
   useEffect(() => {
-    if (session.isExpired && !session.isReadOnly) {
+    if (session.isExpired && !session.isReadOnly && !autoSubmittedRef.current) {
+      autoSubmittedRef.current = true;
       session.submitAnswers((resultado, examenId) => {
         navigation.replace('Result', { resultado: resultado as ResultadoDTO, examenId });
       });
@@ -120,6 +122,8 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   };
 
   const handleConfirmSubmit = () => {
+    if (autoSubmittedRef.current) return;
+    autoSubmittedRef.current = true;
     setSubmitModalVisible(false);
     session.submitAnswers(handleSubmitSuccess);
   };

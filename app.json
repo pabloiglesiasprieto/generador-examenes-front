@@ -4,6 +4,7 @@
     "slug": "generador-examenes-front",
     "version": "1.0.0",
     "orientation": "portrait",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
       "backgroundColor": "#0D0D1A"
@@ -13,10 +14,18 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.proyecto.generadorexamenes"
+      "bundleIdentifier": "com.proyecto.generadorexamenes",
+      "icon": "./assets/icon.png"
     },
     "android": {
-      "package": "com.proyecto.generadorexamenes"
+      "package": "com.proyecto.generadorexamenes",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D0D1A"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     },
     "plugins": []
   }

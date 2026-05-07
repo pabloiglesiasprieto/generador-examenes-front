@@ -82,12 +82,15 @@ export default function ExamResultsScreen() {
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={{ paddingBottom: 40 }}
             renderItem={({ item }) => {
+              const nota = item.nota ?? null;
               const notaColor =
-                item.nota >= 9
+                nota == null
+                  ? '#64748B'
+                  : nota >= 9
                   ? '#10B981'
-                  : item.nota >= 7
+                  : nota >= 7
                   ? '#06B6D4'
-                  : item.nota >= 5
+                  : nota >= 5
                   ? '#F59E0B'
                   : '#EF4444';
               return (
@@ -99,7 +102,7 @@ export default function ExamResultsScreen() {
                     {item.intento}
                   </Text>
                   <Text style={[styles.col, styles.colNota, { color: notaColor, fontWeight: '700' }]}>
-                    {item.nota.toFixed(1)}
+                    {nota != null ? nota.toFixed(1) : '—'}
                   </Text>
                   <Text style={[styles.col, styles.colTiempo, styles.cellText]}>
                     {formatTime(item.tiempo_segundos)}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Alert } from 'react-native';
+import { useAlert } from './AlertContext';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IEvaluarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
@@ -25,6 +25,7 @@ function extractErrorMessage(err: unknown): string {
 }
 
 export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
+  const { showAlert } = useAlert();
   const preguntas = examen.preguntas ?? [];
   // Admin siempre en modo solo lectura; alumno en modo interactivo
   const isReadOnly = isAdminMode;
@@ -86,7 +87,7 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
 
   const goNext = () => {
     if (!isReadOnly && !hasAnswered) {
-      Alert.alert('Atención', 'Selecciona al menos una respuesta');
+      showAlert('Atención', 'Selecciona al menos una respuesta');
       return;
     }
     if (currentIndex < totalPreguntas - 1) {
@@ -101,7 +102,7 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
       const resultado = await evaluarExamenUseCase.execute(examen.id, respuestas);
       onSuccess(resultado, examen.id);
     } catch (err: unknown) {
-      Alert.alert('Error', extractErrorMessage(err));
+      showAlert('Error', extractErrorMessage(err));
     } finally {
       setSubmitting(false);
     }

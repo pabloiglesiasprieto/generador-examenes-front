@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   ActivityIndicator,
   Modal,
 } from 'react-native';
@@ -16,6 +15,7 @@ import { ResultadoDTO } from '../../domain/entities/Examen';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IIniciarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
+import { useAlert } from '../viewmodels/AlertContext';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Exam'>;
 
@@ -72,6 +72,7 @@ function formatTime(seconds: number): string {
 
 export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const { examen, isAdminMode = false } = route.params;
+  const { showAlert } = useAlert();
   const session = useExamSession(examen, isAdminMode);
   const [submitModalVisible, setSubmitModalVisible] = useState(false);
   const [quitModalVisible, setQuitModalVisible] = useState(false);
@@ -115,7 +116,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
 
   const handleSubmitPress = () => {
     if (!session.hasAnswered) {
-      Alert.alert('Atención', 'Selecciona al menos una respuesta');
+      showAlert('Atención', 'Selecciona al menos una respuesta');
       return;
     }
     setSubmitModalVisible(true);

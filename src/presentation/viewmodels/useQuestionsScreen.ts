@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { useAlert } from './AlertContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { PageResponse } from '../../domain/entities/Page';
 import { container } from '../../infrastructure/config/container';
@@ -44,6 +44,7 @@ function validatePreguntaForm(
 }
 
 export function useQuestionsScreen() {
+  const { showAlert } = useAlert();
   const [preguntas, setPreguntas] = useState<PreguntaDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -91,7 +92,7 @@ export function useQuestionsScreen() {
         setHasMore(false);
       }
     } catch {
-      Alert.alert('Error', 'No se pudieron cargar las preguntas');
+      showAlert('Error', 'No se pudieron cargar las preguntas');
     } finally {
       setLoading(false);
     }
@@ -193,7 +194,7 @@ export function useQuestionsScreen() {
   const handleSave = async () => {
     const validationError = validatePreguntaForm(enunciado, respuestas);
     if (validationError) {
-      Alert.alert('Error', validationError);
+      showAlert('Error', validationError);
       return;
     }
 
@@ -215,7 +216,7 @@ export function useQuestionsScreen() {
       setModalVisible(false);
       await loadPreguntas();
     } catch (err: unknown) {
-      Alert.alert('Error', extractApiError(err, 'Error al guardar'));
+      showAlert('Error', extractApiError(err, 'Error al guardar'));
     } finally {
       setSaving(false);
     }

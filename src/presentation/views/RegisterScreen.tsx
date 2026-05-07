@@ -5,17 +5,18 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ScrollView,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/RootNavigator';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IRegisterUseCase } from '../../domain/interfaces/useCases/auth/IRegisterUseCase';
+import { useAlert } from '../viewmodels/AlertContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
@@ -29,6 +30,7 @@ export default function RegisterScreen({ navigation }: Props) {
   });
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const { showAlert } = useAlert();
 
   const registerUseCase = container.get<IRegisterUseCase>(TYPES.IRegisterUseCase);
 
@@ -38,18 +40,15 @@ export default function RegisterScreen({ navigation }: Props) {
   const handleRegister = async () => {
     const { nombre, apellido, correo, password, confirm } = form;
     if (!nombre || !apellido || !correo || !password || !confirm) {
-      Alert.alert('Error', 'Completa todos los campos');
+      showAlert('Error', 'Completa todos los campos');
       return;
     }
     if (password !== confirm) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
+      showAlert('Error', 'Las contraseñas no coinciden');
       return;
     }
     if (password.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      Alert.alert(
-        'Contraseña débil',
-        'Debe tener mínimo 8 caracteres y un carácter especial',
-      );
+      showAlert('Contraseña débil', 'Debe tener mínimo 8 caracteres y un carácter especial');
       return;
     }
     setLoading(true);
@@ -65,7 +64,7 @@ export default function RegisterScreen({ navigation }: Props) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'No se pudo crear la cuenta';
-      Alert.alert('Error', msg);
+      showAlert('Error', msg);
     } finally {
       setLoading(false);
     }
@@ -126,7 +125,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 secureTextEntry={!showPass}
               />
               <TouchableOpacity onPress={() => setShowPass((v) => !v)} style={styles.eyeBtn}>
-                <Text style={styles.eyeText}>{showPass ? '🙈' : '👁️'}</Text>
+                <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
               </TouchableOpacity>
             </View>
           </View>
@@ -201,7 +200,18 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     justifyContent: 'center',
   },
-  eyeText: { fontSize: 18 },
+  eyeBtn: {
+    backgroundColor: '#0D0D1A',
+    borderWidth: 1,
+    borderLeftWidth: 0,
+    borderColor: '#2D2D44',
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   btn: {
     backgroundColor: '#7C3AED',
     borderRadius: 12,

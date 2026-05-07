@@ -9,7 +9,6 @@ import {
   Modal,
   TextInput,
   Animated,
-  Alert,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -22,12 +21,14 @@ import { TYPES } from '../../infrastructure/config/types';
 import { IGetUsuarioByIdUseCase, IUpdateUsuarioUseCase } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { IGetResultadosAlumnoUseCase, IExportExamenesUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { ResultadoDTO } from '../../domain/entities/Examen';
+import { useAlert } from '../viewmodels/AlertContext';
 import { UsuarioDTO } from '../../domain/entities/Usuario';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
   const { user, signOut, isAdmin, isProfesor, isAlumno } = useAuth();
+  const { showAlert } = useAlert();
   const [usuario, setUsuario] = useState<UsuarioDTO | null>(null);
   const [resultados, setResultados] = useState<ResultadoDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +135,7 @@ export default function ProfileScreen({ navigation }: Props) {
         if (canShare) {
           await Sharing.shareAsync(uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });
         } else {
-          Alert.alert('Archivo generado', `Guardado en: ${uri}`);
+          showAlert('Archivo generado', `Guardado en: ${uri}`);
         }
       } else {
         // Web: descarga directa via <a>
@@ -147,7 +148,7 @@ export default function ProfileScreen({ navigation }: Props) {
         URL.revokeObjectURL(url);
       }
     } catch {
-      Alert.alert('Error', `No se pudo exportar el archivo ${formato.toUpperCase()}.`);
+      showAlert('Error', `No se pudo exportar el archivo ${formato.toUpperCase()}.`);
     }
   }
 

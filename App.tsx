@@ -7,18 +7,23 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/presentation/viewmodels/AuthContext';
+import { AlertProvider } from './src/presentation/viewmodels/AlertContext';
+import { AppAlertModal } from './src/presentation/components/AppAlertModal';
 import RootNavigator from './src/presentation/navigation/RootNavigator';
 
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <AuthProvider>
-          <NavigationContainer>
-            <StatusBar style="light" backgroundColor="#0D0D1A" />
-            <RootNavigator />
-          </NavigationContainer>
-        </AuthProvider>
+        <AlertProvider>
+          <AuthProvider>
+            <NavigationContainer>
+              <StatusBar style="light" backgroundColor="#0D0D1A" />
+              <RootNavigator />
+            </NavigationContainer>
+            <AppAlertModal />
+          </AuthProvider>
+        </AlertProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

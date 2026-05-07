@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert } from 'react-native';
+import { useAlert } from './AlertContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
@@ -20,6 +20,7 @@ function extractApiError(err: unknown, fallback: string): string {
 }
 
 export function useUsersScreen(currentUserId: number | undefined) {
+  const { showAlert } = useAlert();
   const [usuarios, setUsuarios] = useState<UsuarioDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UsuarioDTO | null>(null);
@@ -44,7 +45,7 @@ export function useUsersScreen(currentUserId: number | undefined) {
       setUsuarios(data);
       setAllRoles(roles);
     } catch {
-      Alert.alert('Error', 'No se pudieron cargar los usuarios');
+      showAlert('Error', 'No se pudieron cargar los usuarios');
     } finally {
       setLoading(false);
     }
@@ -86,7 +87,7 @@ export function useUsersScreen(currentUserId: number | undefined) {
       const roles = await getRolesByUsuarioUseCase.execute(selectedUser.id_usuario);
       setUserRoles(roles);
     } catch (err: unknown) {
-      Alert.alert('Error', extractApiError(err, 'Error al modificar el rol'));
+      showAlert('Error', extractApiError(err, 'Error al modificar el rol'));
     } finally {
       setRolLoading(false);
     }
@@ -94,10 +95,10 @@ export function useUsersScreen(currentUserId: number | undefined) {
 
   const handleDelete = (u: UsuarioDTO) => {
     if (u.id_usuario === currentUserId) {
-      Alert.alert('Error', 'No puedes eliminarte a ti mismo');
+      showAlert('Error', 'No puedes eliminarte a ti mismo');
       return;
     }
-    Alert.alert('Eliminar usuario', `¿Eliminar a ${u.nombre_usuario}?`, [
+    showAlert('Eliminar usuario', `¿Eliminar a ${u.nombre_usuario}?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar',
@@ -107,7 +108,7 @@ export function useUsersScreen(currentUserId: number | undefined) {
             await deleteUsuarioUseCase.execute(u.id_usuario);
             await loadUsuarios();
           } catch {
-            Alert.alert('Error', 'No se pudo eliminar el usuario');
+            showAlert('Error', 'No se pudo eliminar el usuario');
           }
         },
       },

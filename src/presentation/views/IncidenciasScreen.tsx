@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Modal,
   ScrollView,
   TextInput,
@@ -21,6 +20,7 @@ import {
   IGetIncidenciasByClaseUseCase,
 } from '../../domain/interfaces/useCases/incidencias/IIncidenciaUseCase';
 import { IncidenciaDTO } from '../../domain/entities/Incidencia';
+import { useAlert } from '../viewmodels/AlertContext';
 
 const TYPE_COLORS: Record<string, string> = {
   ERROR: '#EF4444',
@@ -29,6 +29,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function IncidenciasScreen() {
+  const { showAlert } = useAlert();
   const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const [incidencias, setIncidencias] = useState<IncidenciaDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +46,7 @@ export default function IncidenciasScreen() {
       const data = await getAllIncidenciasUseCase.execute();
       setIncidencias(data);
     } catch {
-      Alert.alert('Error', 'No se pudieron cargar las incidencias');
+      showAlert('Error', 'No se pudieron cargar las incidencias');
     } finally {
       setLoading(false);
     }
@@ -69,7 +70,7 @@ export default function IncidenciasScreen() {
       const data = await getIncidenciasByClaseUseCase.execute(filterClase.trim());
       setIncidencias(data);
     } catch {
-      Alert.alert('Error', 'No se encontraron incidencias para esa clase');
+      showAlert('Error', 'No se encontraron incidencias para esa clase');
     } finally {
       setFiltering(false);
     }

@@ -64,9 +64,9 @@ function GameNavigator() {
     <GameStack.Navigator
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D1A' } }}
     >
-      <GameStack.Screen name="Map" component={MapScreen} />
-      <GameStack.Screen name="Exam" component={ExamScreen} />
-      <GameStack.Screen name="Result" component={ResultScreen} />
+      <GameStack.Screen name="Map" component={MapScreen} options={{ title: 'Seleccionar examen' }} />
+      <GameStack.Screen name="Exam" component={ExamScreen} options={{ title: 'Realizando examen' }} />
+      <GameStack.Screen name="Result" component={ResultScreen} options={{ title: 'Resultado del examen' }} />
     </GameStack.Navigator>
   );
 }
@@ -77,8 +77,8 @@ function ProfileNavigator() {
     <ProfileStack.Navigator
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D1A' } }}
     >
-      <ProfileStack.Screen name="Profile" component={ProfileScreen} />
-      <ProfileStack.Screen name="History" component={HistoryScreen} />
+      <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Mi perfil' }} />
+      <ProfileStack.Screen name="History" component={HistoryScreen} options={{ title: 'Historial de exámenes' }} />
     </ProfileStack.Navigator>
   );
 }
@@ -89,12 +89,12 @@ function AdminNavigator() {
     <AdminStack.Navigator
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0D0D1A' } }}
     >
-      <AdminStack.Screen name="AdminHome" component={AdminHomeScreen} />
-      <AdminStack.Screen name="Questions" component={QuestionsScreen} />
-      <AdminStack.Screen name="Users" component={UsersScreen} />
-      <AdminStack.Screen name="Incidencias" component={IncidenciasScreen} />
-      <AdminStack.Screen name="Dashboard" component={DashboardScreen} />
-      <AdminStack.Screen name="ExamResults" component={ExamResultsScreen} />
+      <AdminStack.Screen name="AdminHome" component={AdminHomeScreen} options={{ title: 'Panel de administración' }} />
+      <AdminStack.Screen name="Questions" component={QuestionsScreen} options={{ title: 'Gestión de preguntas' }} />
+      <AdminStack.Screen name="Users" component={UsersScreen} options={{ title: 'Gestión de usuarios' }} />
+      <AdminStack.Screen name="Incidencias" component={IncidenciasScreen} options={{ title: 'Incidencias' }} />
+      <AdminStack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Panel de estadísticas' }} />
+      <AdminStack.Screen name="ExamResults" component={ExamResultsScreen} options={{ title: 'Resultados del examen' }} />
     </AdminStack.Navigator>
   );
 }

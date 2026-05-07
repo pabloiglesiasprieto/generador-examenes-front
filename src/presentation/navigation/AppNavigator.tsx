@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '../viewmodels/AuthContext';
 import { ExamenDTO, ResultadoDTO } from '../../domain/entities/Examen';
@@ -104,6 +105,7 @@ export default function AppNavigator() {
   const { isAdmin, isProfesor } = useAuth();
   const showAdminTab = isAdmin || isProfesor;
   const adminTabLabel = isAdmin ? 'Admin' : 'Profesor';
+  const insets = useSafeAreaInsets();
 
   return (
     <Tab.Navigator
@@ -118,8 +120,8 @@ export default function AppNavigator() {
           tabBarStyle: {
             backgroundColor: '#1A1A2E',
             borderTopColor: '#2D2D44',
-            paddingBottom: 4,
-            height: 60,
+            paddingBottom: insets.bottom + 4,
+            height: 60 + insets.bottom,
           },
           tabBarActiveTintColor: '#7C3AED',
           tabBarInactiveTintColor: '#666',

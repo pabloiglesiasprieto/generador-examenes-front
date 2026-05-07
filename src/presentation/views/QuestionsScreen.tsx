@@ -34,7 +34,7 @@ function PreguntaCard({
   return (
     <View style={styles.card}>
       <View style={styles.cardBody}>
-        <View style={styles.badgeRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.badgeRow} contentContainerStyle={styles.badgeRowContent}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>#{item.id}</Text>
           </View>
@@ -54,7 +54,7 @@ function PreguntaCard({
               <Text style={[styles.badgeText, { color: '#7C3AED' }]}>{item.categoria}</Text>
             </View>
           )}
-        </View>
+        </ScrollView>
         <Text style={styles.enunciado} numberOfLines={3}>
           {item.enunciado}
         </Text>
@@ -500,7 +500,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   cardBody: { padding: 16 },
-  badgeRow: { flexDirection: 'row', gap: 6, marginBottom: 8 },
+  badgeRow: { marginBottom: 8 },
+  badgeRowContent: { flexDirection: 'row', gap: 6 },
   badge: { backgroundColor: '#2D2D44', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   badgeText: { color: '#94A3B8', fontSize: 11, fontWeight: '600' },
   enunciado: { color: '#FFFFFF', fontSize: 14, lineHeight: 20 },

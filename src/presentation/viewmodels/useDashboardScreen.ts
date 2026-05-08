@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
@@ -33,9 +33,9 @@ export function useDashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getEstadisticasUseCase = container.get<IGetEstadisticasExamenesUseCase>(TYPES.IGetEstadisticasExamenesUseCase);
-  const getRankingUseCase = container.get<IGetRankingAlumnosUseCase>(TYPES.IGetRankingAlumnosUseCase);
-  const getEstadisticasPreguntasUseCase = container.get<IGetEstadisticasPreguntasUseCase>(TYPES.IGetEstadisticasPreguntasUseCase);
+  const getEstadisticasUseCase = useMemo(() => container.get<IGetEstadisticasExamenesUseCase>(TYPES.IGetEstadisticasExamenesUseCase), []);
+  const getRankingUseCase = useMemo(() => container.get<IGetRankingAlumnosUseCase>(TYPES.IGetRankingAlumnosUseCase), []);
+  const getEstadisticasPreguntasUseCase = useMemo(() => container.get<IGetEstadisticasPreguntasUseCase>(TYPES.IGetEstadisticasPreguntasUseCase), []);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -46,7 +46,7 @@ export function useDashboardScreen() {
         getRankingUseCase.execute(),
         getEstadisticasPreguntasUseCase.execute(),
       ]);
-setEstadisticasExamenes(examenes);
+      setEstadisticasExamenes(examenes);
       setRankingAlumnos(ranking);
       setEstadisticasPreguntas(preguntas);
     } catch (err) {
@@ -55,7 +55,7 @@ setEstadisticasExamenes(examenes);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getEstadisticasUseCase, getRankingUseCase, getEstadisticasPreguntasUseCase]);
 
   useFocusEffect(
     useCallback(() => {

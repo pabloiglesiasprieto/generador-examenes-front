@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IGetResultadosAlumnoUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
@@ -29,9 +29,7 @@ export function useHistoryScreen(userId: number | undefined) {
   const [filtroExamen, setFiltroExamen] = useState<number | null>(null);
   const [selectedResultado, setSelectedResultado] = useState<ResultadoDTO | null>(null);
 
-  const getResultadosAlumnoUseCase = container.get<IGetResultadosAlumnoUseCase>(
-    TYPES.IGetResultadosAlumnoUseCase,
-  );
+  const getResultadosAlumnoUseCase = useMemo(() => container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase), []);
 
   useEffect(() => {
     if (!userId) return;
@@ -42,13 +40,13 @@ export function useHistoryScreen(userId: number | undefined) {
       .finally(() => setLoading(false));
   }, [userId]);
 
-  const openDetalle = (resultado: ResultadoDTO) => {
+  const openDetalle = useCallback((resultado: ResultadoDTO) => {
     setSelectedResultado(resultado);
-  };
+  }, []);
 
-  const closeDetalle = () => {
+  const closeDetalle = useCallback(() => {
     setSelectedResultado(null);
-  };
+  }, []);
 
   const resultadosFiltrados =
     filtroExamen === null

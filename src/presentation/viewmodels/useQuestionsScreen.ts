@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useAlert } from './AlertContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { PageResponse } from '../../domain/entities/Page';
@@ -117,12 +117,12 @@ export function useQuestionsScreen() {
   const [csvImporting, setCsvImporting] = useState(false);
   const [activeTab, setActiveTab] = useState<'form' | 'json' | 'csv'>('form');
 
-  const getAllPreguntasUseCase = container.get<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase);
-  const getPreguntaByIdUseCase = container.get<IGetPreguntaByIdUseCase>(TYPES.IGetPreguntaByIdUseCase);
-  const createPreguntaUseCase = container.get<ICreatePreguntaUseCase>(TYPES.ICreatePreguntaUseCase);
-  const updatePreguntaUseCase = container.get<IUpdatePreguntaUseCase>(TYPES.IUpdatePreguntaUseCase);
-  const deletePreguntaUseCase = container.get<IDeletePreguntaUseCase>(TYPES.IDeletePreguntaUseCase);
-  const importarCsvUseCase = container.get<IImportarCsvPreguntasUseCase>(TYPES.IImportarCsvPreguntasUseCase);
+  const getAllPreguntasUseCase = useMemo(() => container.get<IGetAllPreguntasUseCase>(TYPES.IGetAllPreguntasUseCase), []);
+  const getPreguntaByIdUseCase = useMemo(() => container.get<IGetPreguntaByIdUseCase>(TYPES.IGetPreguntaByIdUseCase), []);
+  const createPreguntaUseCase = useMemo(() => container.get<ICreatePreguntaUseCase>(TYPES.ICreatePreguntaUseCase), []);
+  const updatePreguntaUseCase = useMemo(() => container.get<IUpdatePreguntaUseCase>(TYPES.IUpdatePreguntaUseCase), []);
+  const deletePreguntaUseCase = useMemo(() => container.get<IDeletePreguntaUseCase>(TYPES.IDeletePreguntaUseCase), []);
+  const importarCsvUseCase = useMemo(() => container.get<IImportarCsvPreguntasUseCase>(TYPES.IImportarCsvPreguntasUseCase), []);
 
   const loadPreguntas = useCallback(async () => {
     currentPageRef.current = 0;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { ILoginUseCase } from '../../domain/interfaces/useCases/auth/ILoginUseCase';
@@ -60,7 +60,7 @@ export function useLoginForm(onSuccess: (token: string) => Promise<void>) {
     showPassword: false,
   });
 
-  const loginUseCase = container.get<ILoginUseCase>(TYPES.ILoginUseCase);
+  const loginUseCase = useMemo(() => container.get<ILoginUseCase>(TYPES.ILoginUseCase), []);
 
   const setField = <K extends keyof LoginFormState>(key: K, value: LoginFormState[K]) =>
     setState((prev) => ({ ...prev, [key]: value }));

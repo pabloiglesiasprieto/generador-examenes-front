@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminStackParamList } from '../navigation/AppNavigator';
-import { useDashboardScreen } from '../viewmodels/useDashboardScreen';
-import { EstadisticaExamenDTO, EstadisticaAlumnoDTO, EstadisticaPreguntaDTO } from '../../domain/entities/Estadistica';
+import { useDashboardScreen, AlumnoRankingItem } from '../viewmodels/useDashboardScreen';
+import { EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../domain/entities/Estadistica';
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'Dashboard'>;
 
@@ -57,7 +57,7 @@ function ExamenStatCard({
   );
 }
 
-function AlumnoRankCard({ item, position }: Readonly<{ item: EstadisticaAlumnoDTO; position: number }>) {
+function AlumnoRankCard({ item, position }: Readonly<{ item: AlumnoRankingItem; position: number }>) {
   const media = item.nota_media ?? 0;
   const medalColor = position === 1 ? '#F59E0B' : position === 2 ? '#94A3B8' : position === 3 ? '#CD7F32' : '#2D2D44';
   return (
@@ -66,7 +66,7 @@ function AlumnoRankCard({ item, position }: Readonly<{ item: EstadisticaAlumnoDT
         <Text style={[styles.rankPos, { color: medalColor }]}>{position}</Text>
       </View>
       <View style={styles.rankInfo}>
-        <Text style={styles.rankUserId}>Usuario #{item.usuario_id}</Text>
+        <Text style={styles.rankUserId}>#{item.usuario_id} · {item.nombre_usuario}</Text>
         <Text style={styles.rankExamenes}>{item.examenes_realizados} examen(es)</Text>
       </View>
       <View style={[styles.scorePill, { backgroundColor: getBarColor(media) + '33' }]}>

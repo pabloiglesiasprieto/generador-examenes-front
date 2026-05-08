@@ -9,6 +9,7 @@ export interface EstadisticaExamenDTO {
 
 export interface EstadisticaAlumnoDTO {
   usuario_id: number;
+  nombre_usuario: string;
   nota_media: number | null;
   examenes_realizados: number;
 }

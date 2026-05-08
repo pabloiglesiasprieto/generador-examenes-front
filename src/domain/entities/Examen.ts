@@ -31,6 +31,7 @@ export interface DetalleRespuestaDTO {
 
 export interface ResultadoDTO {
   usuario_id?: number;
+  nombre_usuario?: string;
   examen_id: number;
   intento: number;
   nota: number;

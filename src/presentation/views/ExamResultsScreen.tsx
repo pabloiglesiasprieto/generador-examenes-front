@@ -96,7 +96,7 @@ export default function ExamResultsScreen() {
               return (
                 <View style={styles.row}>
                   <Text style={[styles.col, styles.colUsuario, styles.cellText]}>
-                    #{item.usuario_id ?? '—'}
+                    #{item.usuario_id ?? '—'}{item.nombre_usuario ? ` · ${item.nombre_usuario}` : ''}
                   </Text>
                   <Text style={[styles.col, styles.colIntento, styles.cellText]}>
                     {item.intento}

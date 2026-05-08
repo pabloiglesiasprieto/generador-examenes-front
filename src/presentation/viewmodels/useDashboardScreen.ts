@@ -9,9 +9,11 @@ import {
 } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { EstadisticaAlumnoDTO, EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../domain/entities/Estadistica';
 
+export type AlumnoRankingItem = EstadisticaAlumnoDTO;
+
 export function useDashboardScreen() {
   const [estadisticasExamenes, setEstadisticasExamenes] = useState<EstadisticaExamenDTO[]>([]);
-  const [rankingAlumnos, setRankingAlumnos] = useState<EstadisticaAlumnoDTO[]>([]);
+  const [rankingAlumnos, setRankingAlumnos] = useState<AlumnoRankingItem[]>([]);
   const [estadisticasPreguntas, setEstadisticasPreguntas] = useState<EstadisticaPreguntaDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,10 +31,11 @@ export function useDashboardScreen() {
         getRankingUseCase.execute(),
         getEstadisticasPreguntasUseCase.execute(),
       ]);
-      setEstadisticasExamenes(examenes);
+setEstadisticasExamenes(examenes);
       setRankingAlumnos(ranking);
       setEstadisticasPreguntas(preguntas);
-    } catch {
+    } catch (err) {
+      console.error('[Dashboard] Error cargando estadísticas:', err);
       setError('No se pudieron cargar las estadísticas');
     } finally {
       setLoading(false);

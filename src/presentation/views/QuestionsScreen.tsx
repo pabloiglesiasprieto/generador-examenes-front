@@ -11,6 +11,7 @@ import {
   ScrollView,
   Switch,
   Platform,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,6 +19,9 @@ import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useQuestionsScreen } from '../viewmodels/useQuestionsScreen';
 import { JsonValidationError } from '../utils/validatePreguntasJson';
 import { PreguntaDTO, RespuestaInput } from '../../domain/entities/Pregunta';
+import * as XLSX from 'xlsx';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 const DIFICULTAD_COLORS: Record<string, string> = {
   FACIL: '#10B981',
@@ -251,10 +255,60 @@ function JsonTab({ q }: Readonly<{ q: QState }>) {
   );
 }
 
+async function descargarPlantillaExcel() {
+  const cabecera = [
+    'enunciado',
+    'es_multiple',
+    'dificultad',
+    'categoria',
+    'respuesta_1', 'correcta_1',
+    'respuesta_2', 'correcta_2',
+    'respuesta_3', 'correcta_3',
+    'respuesta_4', 'correcta_4',
+  ];
+  const ejemplo = [
+    '¿Cuál es la capital de España?',
+    'false',
+    'FACIL',
+    'Geografía',
+    'Madrid', 'true',
+    'Barcelona', 'false',
+    'Sevilla', 'false',
+    'Valencia', 'false',
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet([cabecera, ejemplo]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Plantilla');
+
+  if (Platform.OS === 'web') {
+    XLSX.writeFile(wb, 'plantilla_preguntas.xlsx');
+    return;
+  }
+
+  const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fs = FileSystem as any;
+  const uri = `${fs.cacheDirectory}plantilla_preguntas.xlsx`;
+  await fs.writeAsStringAsync(uri, base64, { encoding: 'base64' });
+  const canShare = await Sharing.isAvailableAsync();
+  if (canShare) {
+    await Sharing.shareAsync(uri, {
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      dialogTitle: 'Guardar plantilla de preguntas',
+    });
+  } else {
+    Alert.alert('Error', 'No es posible compartir archivos en este dispositivo.');
+  }
+}
+
 function CsvTab({ q }: Readonly<{ q: QState }>) {
   return (
     <ScrollView contentContainerStyle={styles.modalBody}>
       <Text style={styles.fieldLabel}>CSV de preguntas</Text>
+      <TouchableOpacity style={styles.templateBtn} onPress={descargarPlantillaExcel}>
+        <Text style={styles.templateBtnText}>⬇ Descargar plantilla Excel</Text>
+      </TouchableOpacity>
       <Text style={styles.jsonHint}>
         Pega el contenido de un fichero CSV con cabecera:{'\n'}
         <Text style={styles.jsonCode}>enunciado,es_multiple,dificultad,categoria,respuesta_1,correcta_1,respuesta_2,correcta_2,...</Text>{'\n\n'}
@@ -593,6 +647,15 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  templateBtn: {
+    backgroundColor: '#059669',
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  templateBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
   deleteOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',

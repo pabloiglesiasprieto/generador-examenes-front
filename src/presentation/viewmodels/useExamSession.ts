@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAlert } from './AlertContext';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
@@ -78,26 +78,23 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
   const [isExpired, setIsExpired] = useState(false);
   const autoSubmitRef = useRef<((cb: (resultado: unknown, examenId: number) => void) => void) | null>(null);
 
-  const evaluarExamenUseCase = container.get<IEvaluarExamenUseCase>(TYPES.IEvaluarExamenUseCase);
+  const evaluarExamenUseCase = useMemo(() => container.get<IEvaluarExamenUseCase>(TYPES.IEvaluarExamenUseCase), []);
 
-  // Countdown timer (solo para alumnos)
+  // Countdown timer (solo para alumnos) — un único interval durante toda la sesión
   useEffect(() => {
-    if (timeRemaining === null || isReadOnly) return;
-    if (timeRemaining <= 0) {
-      setIsExpired(true);
-      return;
-    }
+    if (isReadOnly) return;
     const interval = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev == null || prev <= 1) {
           setIsExpired(true);
+          clearInterval(interval);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [timeRemaining, isReadOnly]);
+  }, [isReadOnly]);
 
   const currentPregunta = preguntas[currentIndex];
   const totalPreguntas = preguntas.length;
@@ -133,7 +130,7 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
     }
   };
 
-  const submitAnswers = async (onSuccess: (resultado: unknown, examenId: number) => void) => {
+  const submitAnswers = useCallback(async (onSuccess: (resultado: unknown, examenId: number) => void) => {
     setSubmitting(true);
     try {
       const respuestas = buildRespuestasDTO(examen, answers);
@@ -144,7 +141,7 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [examen, answers, evaluarExamenUseCase, showAlert]);
 
   return {
     currentPregunta,

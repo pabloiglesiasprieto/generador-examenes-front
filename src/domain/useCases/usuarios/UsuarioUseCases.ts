@@ -4,6 +4,8 @@ import { IUsuarioRepository } from '../../interfaces/repositories/IUsuarioReposi
 import {
   IGetAllRolesUseCase,
   IGetAllUsuariosUseCase,
+  IGetAllUsuariosConInactivosUseCase,
+  IActivarUsuarioUseCase,
   IGetUsuarioByIdUseCase,
   IGetRolesByUsuarioUseCase,
   IUpdateUsuarioUseCase,
@@ -46,6 +48,30 @@ export class GetAllUsuariosUseCase implements IGetAllUsuariosUseCase {
    */
   execute(): Promise<UsuarioDTO[]> {
     return this.usuarioRepository.getAllUsuarios();
+  }
+}
+
+/**
+ * Caso de uso para obtener todos los usuarios incluyendo inactivos.
+ */
+@injectable()
+export class GetAllUsuariosConInactivosUseCase implements IGetAllUsuariosConInactivosUseCase {
+  constructor(@inject(TYPES.IUsuarioRepository) private usuarioRepository: IUsuarioRepository) {}
+
+  execute(): Promise<UsuarioDTO[]> {
+    return this.usuarioRepository.getAllUsuariosConInactivos();
+  }
+}
+
+/**
+ * Caso de uso para activar un usuario desactivado.
+ */
+@injectable()
+export class ActivarUsuarioUseCase implements IActivarUsuarioUseCase {
+  constructor(@inject(TYPES.IUsuarioRepository) private usuarioRepository: IUsuarioRepository) {}
+
+  execute(id: number): Promise<UsuarioDTO> {
+    return this.usuarioRepository.activarUsuario(id);
   }
 }
 

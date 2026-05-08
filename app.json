@@ -28,6 +28,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": []
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "b56c7eca-6fc3-4481-919f-6071e459055d"
+      }
+    },
+    "owner": "pabloiglesiasprieto"
   }
 }

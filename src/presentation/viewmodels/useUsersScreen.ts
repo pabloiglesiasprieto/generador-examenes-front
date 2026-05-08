@@ -5,7 +5,8 @@ import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import {
   IGetAllRolesUseCase,
-  IGetAllUsuariosUseCase,
+  IGetAllUsuariosConInactivosUseCase,
+  IActivarUsuarioUseCase,
   IDeleteUsuarioUseCase,
   IGetRolesByUsuarioUseCase,
   IAsignarRolUseCase,
@@ -13,40 +14,14 @@ import {
 } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { UsuarioDTO, RolDTO } from '../../domain/entities/Usuario';
 
-/**
- * Extrae el mensaje de error de una respuesta de la API o devuelve un mensaje de reserva.
- *
- * @param err - Error capturado en el bloque catch.
- * @param fallback - Mensaje a devolver si no hay mensaje de la API.
- * @returns Mensaje de error legible para el usuario.
- */
 function extractApiError(err: unknown, fallback: string): string {
   return (
     (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? fallback
   );
 }
 
-/**
- * ViewModel de la pantalla de gestión de usuarios.
- * Carga la lista de usuarios y roles disponibles, permite abrir el detalle de un usuario
- * para consultar y modificar sus roles, y gestiona la eliminación de usuarios.
- *
- * @param currentUserId - Identificador del usuario autenticado actualmente,
- *   usado para impedir que el administrador se elimine a sí mismo.
- * @precondition El usuario autenticado debe tener rol ADMIN.
- * @returns Objeto con el estado y los handlers de la pantalla de usuarios:
- *   - `usuarios`: lista completa de usuarios cargados.
- *   - `loading`: indicador de carga inicial.
- *   - `selectedUser`: usuario seleccionado para ver el detalle, o null.
- *   - `userRoles`: roles asignados actualmente al usuario seleccionado.
- *   - `allRoles`: lista de todos los roles disponibles en el sistema.
- *   - `modalVisible`: indica si el modal de detalle está visible.
- *   - `rolLoading`: indica si se está cargando o modificando un rol.
- *   - `openUserDetail`: abre el modal de detalle y carga los roles del usuario.
- *   - `closeModal`: cierra el modal de detalle.
- *   - `handleToggleRol`: asigna o revoca un rol del usuario seleccionado.
- *   - `handleDelete`: solicita confirmación y elimina un usuario.
- */
+export type TabUsuarios = 'activos' | 'inactivos';
+
 export function useUsersScreen(currentUserId: number | undefined) {
   const { showAlert } = useAlert();
   const [usuarios, setUsuarios] = useState<UsuarioDTO[]>([]);
@@ -56,9 +31,11 @@ export function useUsersScreen(currentUserId: number | undefined) {
   const [allRoles, setAllRoles] = useState<RolDTO[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [rolLoading, setRolLoading] = useState(false);
+  const [tabActiva, setTabActiva] = useState<TabUsuarios>('activos');
 
   const getAllRolesUseCase = useMemo(() => container.get<IGetAllRolesUseCase>(TYPES.IGetAllRolesUseCase), []);
-  const getAllUsuariosUseCase = useMemo(() => container.get<IGetAllUsuariosUseCase>(TYPES.IGetAllUsuariosUseCase), []);
+  const getAllUsuariosConInactivosUseCase = useMemo(() => container.get<IGetAllUsuariosConInactivosUseCase>(TYPES.IGetAllUsuariosConInactivosUseCase), []);
+  const activarUsuarioUseCase = useMemo(() => container.get<IActivarUsuarioUseCase>(TYPES.IActivarUsuarioUseCase), []);
   const deleteUsuarioUseCase = useMemo(() => container.get<IDeleteUsuarioUseCase>(TYPES.IDeleteUsuarioUseCase), []);
   const getRolesByUsuarioUseCase = useMemo(() => container.get<IGetRolesByUsuarioUseCase>(TYPES.IGetRolesByUsuarioUseCase), []);
   const asignarRolUseCase = useMemo(() => container.get<IAsignarRolUseCase>(TYPES.IAsignarRolUseCase), []);
@@ -67,7 +44,7 @@ export function useUsersScreen(currentUserId: number | undefined) {
   const loadUsuarios = useCallback(async () => {
     try {
       const [data, roles] = await Promise.all([
-        getAllUsuariosUseCase.execute(),
+        getAllUsuariosConInactivosUseCase.execute(),
         getAllRolesUseCase.execute(),
       ]);
       setUsuarios(data);
@@ -85,6 +62,9 @@ export function useUsersScreen(currentUserId: number | undefined) {
       loadUsuarios();
     }, [loadUsuarios]),
   );
+
+  const usuariosActivos = useMemo(() => usuarios.filter((u) => u.activo !== false), [usuarios]);
+  const usuariosInactivos = useMemo(() => usuarios.filter((u) => u.activo === false), [usuarios]);
 
   const openUserDetail = async (u: UsuarioDTO) => {
     setSelectedUser(u);
@@ -121,22 +101,39 @@ export function useUsersScreen(currentUserId: number | undefined) {
     }
   };
 
-  const handleDelete = (u: UsuarioDTO) => {
+  const handleDesactivar = (u: UsuarioDTO) => {
     if (u.id_usuario === currentUserId) {
-      showAlert('Error', 'No puedes eliminarte a ti mismo');
+      showAlert('Error', 'No puedes desactivarte a ti mismo');
       return;
     }
-    showAlert('Eliminar usuario', `¿Eliminar a ${u.nombre_usuario}?`, [
+    showAlert('Desactivar usuario', `¿Desactivar a ${u.nombre_usuario}?`, [
       { text: 'Cancelar', style: 'cancel' },
       {
-        text: 'Eliminar',
+        text: 'Desactivar',
         style: 'destructive',
         onPress: async () => {
           try {
             await deleteUsuarioUseCase.execute(u.id_usuario);
             await loadUsuarios();
           } catch {
-            showAlert('Error', 'No se pudo eliminar el usuario');
+            showAlert('Error', 'No se pudo desactivar el usuario');
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleActivar = (u: UsuarioDTO) => {
+    showAlert('Activar usuario', `¿Activar a ${u.nombre_usuario}?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Activar',
+        onPress: async () => {
+          try {
+            await activarUsuarioUseCase.execute(u.id_usuario);
+            await loadUsuarios();
+          } catch {
+            showAlert('Error', 'No se pudo activar el usuario');
           }
         },
       },
@@ -144,16 +141,20 @@ export function useUsersScreen(currentUserId: number | undefined) {
   };
 
   return {
-    usuarios,
+    usuariosActivos,
+    usuariosInactivos,
     loading,
     selectedUser,
     userRoles,
     allRoles,
     modalVisible,
     rolLoading,
+    tabActiva,
+    setTabActiva,
     openUserDetail,
     closeModal,
     handleToggleRol,
-    handleDelete,
+    handleDesactivar,
+    handleActivar,
   };
 }

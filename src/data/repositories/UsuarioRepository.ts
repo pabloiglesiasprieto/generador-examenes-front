@@ -28,6 +28,14 @@ export class UsuarioRepository implements IUsuarioRepository {
     return apiClient.get<UsuarioDTO[]>('/usuarios').then((r) => r.data);
   }
 
+  getAllUsuariosConInactivos(): Promise<UsuarioDTO[]> {
+    return apiClient.get<UsuarioDTO[]>('/usuarios?incluirInactivos=true').then((r) => r.data);
+  }
+
+  activarUsuario(id: number): Promise<UsuarioDTO> {
+    return apiClient.put<UsuarioDTO>(`/usuarios/${id}`, { activo: true }).then((r) => r.data);
+  }
+
   /**
    * Obtiene los datos de un usuario concreto por su identificador.
    *

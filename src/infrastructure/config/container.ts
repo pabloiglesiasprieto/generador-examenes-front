@@ -76,6 +76,8 @@ import {
 import {
   GetAllRolesUseCase,
   GetAllUsuariosUseCase,
+  GetAllUsuariosConInactivosUseCase,
+  ActivarUsuarioUseCase,
   GetUsuarioByIdUseCase,
   GetRolesByUsuarioUseCase,
   UpdateUsuarioUseCase,
@@ -86,6 +88,8 @@ import {
 import {
   IGetAllRolesUseCase,
   IGetAllUsuariosUseCase,
+  IGetAllUsuariosConInactivosUseCase,
+  IActivarUsuarioUseCase,
   IGetUsuarioByIdUseCase,
   IGetRolesByUsuarioUseCase,
   IUpdateUsuarioUseCase,
@@ -147,6 +151,8 @@ container.bind<IImportarCsvPreguntasUseCase>(TYPES.IImportarCsvPreguntasUseCase)
 // Bind use cases - Usuarios
 container.bind<IGetAllRolesUseCase>(TYPES.IGetAllRolesUseCase).to(GetAllRolesUseCase);
 container.bind<IGetAllUsuariosUseCase>(TYPES.IGetAllUsuariosUseCase).to(GetAllUsuariosUseCase);
+container.bind<IGetAllUsuariosConInactivosUseCase>(TYPES.IGetAllUsuariosConInactivosUseCase).to(GetAllUsuariosConInactivosUseCase);
+container.bind<IActivarUsuarioUseCase>(TYPES.IActivarUsuarioUseCase).to(ActivarUsuarioUseCase);
 container.bind<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase).to(GetUsuarioByIdUseCase);
 container.bind<IGetRolesByUsuarioUseCase>(TYPES.IGetRolesByUsuarioUseCase).to(GetRolesByUsuarioUseCase);
 container.bind<IUpdateUsuarioUseCase>(TYPES.IUpdateUsuarioUseCase).to(UpdateUsuarioUseCase);

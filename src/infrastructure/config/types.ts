@@ -40,6 +40,8 @@ export const TYPES = {
   // Casos de uso - Usuarios
   IGetAllRolesUseCase: Symbol.for('IGetAllRolesUseCase'),
   IGetAllUsuariosUseCase: Symbol.for('IGetAllUsuariosUseCase'),
+  IGetAllUsuariosConInactivosUseCase: Symbol.for('IGetAllUsuariosConInactivosUseCase'),
+  IActivarUsuarioUseCase: Symbol.for('IActivarUsuarioUseCase'),
   IGetUsuarioByIdUseCase: Symbol.for('IGetUsuarioByIdUseCase'),
   IGetRolesByUsuarioUseCase: Symbol.for('IGetRolesByUsuarioUseCase'),
   IUpdateUsuarioUseCase: Symbol.for('IUpdateUsuarioUseCase'),

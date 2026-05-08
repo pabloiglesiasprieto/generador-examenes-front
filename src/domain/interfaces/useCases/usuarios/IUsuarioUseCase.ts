@@ -68,6 +68,20 @@ export interface IUpdateUsuarioUseCase {
 }
 
 /**
+ * Contrato del caso de uso para obtener todos los usuarios incluyendo inactivos.
+ */
+export interface IGetAllUsuariosConInactivosUseCase {
+  execute(): Promise<UsuarioDTO[]>;
+}
+
+/**
+ * Contrato del caso de uso para activar un usuario desactivado.
+ */
+export interface IActivarUsuarioUseCase {
+  execute(id: number): Promise<UsuarioDTO>;
+}
+
+/**
  * Contrato del caso de uso para eliminar un usuario del sistema.
  */
 export interface IDeleteUsuarioUseCase {

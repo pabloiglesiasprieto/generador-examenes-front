@@ -20,28 +20,42 @@ import IncidenciasScreen from '../views/IncidenciasScreen';
 import DashboardScreen from '../views/DashboardScreen';
 import ExamResultsScreen from '../views/ExamResultsScreen';
 
+/** Mapa de nombres de rutas de pestaña a iconos de Ionicons. */
 const TAB_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
   GameTab: 'game-controller',
   ProfileTab: 'person',
   AdminTab: 'settings',
 };
 
+/**
+ * Componente auxiliar que renderiza el icono de una pestaña de la barra de navegación inferior.
+ *
+ * @param props - Props del componente.
+ * @param props.routeName - Nombre de la ruta para seleccionar el icono correspondiente.
+ * @param props.color - Color del icono (activo o inactivo).
+ * @param props.size - Tamaño del icono en puntos.
+ * @returns El icono de Ionicons correspondiente a la ruta.
+ */
 function TabIcon({ routeName, color, size }: Readonly<{ routeName: string; color: string; size: number }>) {
   return <Ionicons name={TAB_ICONS[routeName] ?? 'ellipse'} size={size} color={color} />;
 }
 
 // ── Param lists ───────────────────────────────────────────────────────────────
+
+/** Lista de parámetros de las pantallas del stack de juego. */
 export type GameStackParamList = {
   Map: undefined;
   Exam: { examen: ExamenDTO; isAdminMode?: boolean };
   Result: { resultado: ResultadoDTO; examenId: number };
 };
 
+/** Lista de parámetros de las pantallas del stack de perfil. */
 export type ProfileStackParamList = {
   Profile: undefined;
   History: undefined;
 };
 
+/** Lista de parámetros de las pantallas del stack de administración. */
 export type AdminStackParamList = {
   AdminHome: undefined;
   Questions: undefined;
@@ -51,6 +65,7 @@ export type AdminStackParamList = {
   ExamResults: { examenId: number };
 };
 
+/** Lista de parámetros de las pestañas principales de la aplicación. */
 export type AppTabParamList = {
   GameTab: undefined;
   ProfileTab: undefined;
@@ -58,6 +73,13 @@ export type AppTabParamList = {
 };
 
 // ── Stacks ────────────────────────────────────────────────────────────────────
+
+/**
+ * Navegador de pila para el flujo de juego.
+ * Contiene las pantallas: Mapa, Examen y Resultado.
+ *
+ * @returns El stack navigator del flujo de juego.
+ */
 const GameStack = createNativeStackNavigator<GameStackParamList>();
 function GameNavigator() {
   return (
@@ -71,6 +93,12 @@ function GameNavigator() {
   );
 }
 
+/**
+ * Navegador de pila para el perfil del usuario.
+ * Contiene las pantallas: Perfil e Historial.
+ *
+ * @returns El stack navigator del perfil.
+ */
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 function ProfileNavigator() {
   return (
@@ -83,6 +111,12 @@ function ProfileNavigator() {
   );
 }
 
+/**
+ * Navegador de pila para la zona de administración.
+ * Contiene las pantallas: Panel de admin, Preguntas, Usuarios, Incidencias, Dashboard y Resultados de examen.
+ *
+ * @returns El stack navigator de administración.
+ */
 const AdminStack = createNativeStackNavigator<AdminStackParamList>();
 function AdminNavigator() {
   return (
@@ -102,6 +136,15 @@ function AdminNavigator() {
 // ── Tab navigator ─────────────────────────────────────────────────────────────
 const Tab = createBottomTabNavigator<AppTabParamList>();
 
+/**
+ * Navegador principal con pestañas inferiores de la aplicación.
+ * Muestra las pestañas de Juego y Perfil para todos los usuarios, y la pestaña
+ * de Admin/Profesor únicamente para usuarios con los roles correspondientes.
+ *
+ * @precondition El usuario debe estar autenticado. Este componente se renderiza
+ *   únicamente cuando {@link RootNavigator} detecta un usuario autenticado.
+ * @returns El navegador de pestañas principal.
+ */
 export default function AppNavigator() {
   const { isAdmin, isProfesor } = useAuth();
   const showAdminTab = isAdmin || isProfesor;

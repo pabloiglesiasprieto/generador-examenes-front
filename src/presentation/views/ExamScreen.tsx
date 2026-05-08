@@ -19,6 +19,17 @@ import { useAlert } from '../viewmodels/AlertContext';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Exam'>;
 
+/**
+ * Botón de acción del pie de la pantalla de examen.
+ * Renderiza un botón diferente según el modo (admin/alumno) y el estado de la sesión
+ * (última pregunta o no, enviando o no).
+ *
+ * @param props.session - Estado de la sesión de examen.
+ * @param props.isAdminMode - Indica si el examen se visualiza en modo administrador (solo lectura).
+ * @param props.onSubmit - Callback invocado al pulsar el botón de envío de respuestas.
+ * @param props.onClose - Callback invocado al pulsar el botón de siguiente/cerrar en modo admin.
+ * @returns Botón de siguiente, enviar o cerrar según el contexto.
+ */
 function ExamFooterButton({
   session,
   isAdminMode,
@@ -64,12 +75,28 @@ function ExamFooterButton({
   );
 }
 
+/**
+ * Formatea un número de segundos en formato mm:ss con relleno de ceros.
+ *
+ * @param seconds - Número de segundos a formatear.
+ * @returns Cadena en formato "mm:ss".
+ */
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
   const s = (seconds % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
 
+/**
+ * Pantalla de realización de un examen.
+ * Gestiona la navegación entre preguntas, la selección de respuestas, el temporizador
+ * de cuenta regresiva (alumnos), el autoenvío al expirar el tiempo y los modales
+ * de confirmación de salida y envío. En modo admin muestra las respuestas correctas.
+ *
+ * @param props.navigation - Objeto de navegación del stack de juego.
+ * @param props.route - Parámetros de ruta con el examen a realizar y el modo de visualización.
+ * @returns Vista de sesión de examen con preguntas, respuestas, temporizador y modales.
+ */
 export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const { examen, isAdminMode = false } = route.params;
   const { showAlert } = useAlert();

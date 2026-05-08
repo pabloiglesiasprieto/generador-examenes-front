@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import apiClient from '../../data/apiconnection/apiClient';
 
+/** Paso actual del flujo de recuperación de contraseña: 1 (correo), 2 (código), 3 (nueva contraseña). */
 type ForgotStep = 1 | 2 | 3;
 
+/** Estado interno del flujo de recuperación de contraseña. */
 interface ForgotPasswordState {
   show: boolean;
   step: ForgotStep;
@@ -29,6 +31,25 @@ const INITIAL_STATE: ForgotPasswordState = {
   showConfirm: false,
 };
 
+/**
+ * ViewModel del flujo de recuperación de contraseña en tres pasos:
+ * 1. El usuario introduce su correo y solicita un código.
+ * 2. El usuario introduce el código recibido por correo para verificarlo.
+ * 3. El usuario establece una nueva contraseña.
+ *
+ * @returns Objeto con el estado del flujo y los handlers:
+ *   - `show`: indica si el modal está visible.
+ *   - `step`: paso actual (1, 2 o 3).
+ *   - `correo`, `codigo`, `password`, `confirm`: campos del formulario.
+ *   - `loading`, `error`: estado de la operación en curso.
+ *   - `showPassword`, `showConfirm`: visibilidad de las contraseñas.
+ *   - `open`, `close`, `goBack`: control del modal.
+ *   - `requestCode`: solicita el código al backend (paso 1).
+ *   - `goToNewPassword`: valida el código e inicia el paso 3 (paso 2).
+ *   - `submit`: confirma la nueva contraseña (paso 3).
+ *   - `setCorreo`, `setCodigo`, `setPassword`, `setConfirm`: setters de campos.
+ *   - `toggleShowPassword`, `toggleShowConfirm`: alternadores de visibilidad.
+ */
 export function useForgotPassword() {
   const [state, setState] = useState<ForgotPasswordState>(INITIAL_STATE);
 

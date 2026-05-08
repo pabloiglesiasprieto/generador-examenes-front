@@ -5,8 +5,16 @@ import { TYPES } from '../../infrastructure/config/types';
 import { IEvaluarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { ExamenDTO, RespuestaAlumnoDTO } from '../../domain/entities/Examen';
 
+/** Duración en segundos del temporizador fijo para alumnos (2 minutos). */
 const ALUMNO_TIMER_SECONDS = 120; // 2 minutos fijos para alumnos
 
+/**
+ * Construye la lista de respuestas del alumno en el formato requerido por la API.
+ *
+ * @param examen - Datos del examen con las preguntas y sus respuestas.
+ * @param answers - Mapa de índice de pregunta a conjunto de índices de respuestas seleccionadas.
+ * @returns Lista de DTOs de respuestas del alumno listos para enviar a la API.
+ */
 function buildRespuestasDTO(examen: ExamenDTO, answers: Map<number, Set<number>>): RespuestaAlumnoDTO[] {
   return (examen.preguntas ?? []).map((p, pIdx) => {
     const selectedIndices = answers.get(pIdx) ?? new Set<number>();
@@ -17,6 +25,12 @@ function buildRespuestasDTO(examen: ExamenDTO, answers: Map<number, Set<number>>
   });
 }
 
+/**
+ * Extrae el mensaje de error de una respuesta de la API o devuelve un mensaje genérico.
+ *
+ * @param err - Error capturado al evaluar el examen.
+ * @returns Mensaje de error legible para el usuario.
+ */
 function extractErrorMessage(err: unknown): string {
   return (
     (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
@@ -24,6 +38,30 @@ function extractErrorMessage(err: unknown): string {
   );
 }
 
+/**
+ * ViewModel de la sesión de examen.
+ * Gestiona la navegación entre preguntas, la selección de respuestas, el temporizador
+ * de cuenta regresiva (solo para alumnos) y el envío de las respuestas al backend.
+ *
+ * @param examen - Datos del examen a realizar, incluyendo las preguntas y sus respuestas.
+ * @param isAdminMode - Si es true, el examen se muestra en modo lectura (sin temporizador ni envío).
+ * @precondition El examen debe contener al menos una pregunta.
+ * @returns Objeto con el estado de la sesión y los handlers:
+ *   - `currentPregunta`: pregunta que se está mostrando actualmente.
+ *   - `totalPreguntas`: número total de preguntas del examen.
+ *   - `currentIndex`: índice de la pregunta actual.
+ *   - `progress`: fracción de progreso (0-1).
+ *   - `isLast`: indica si es la última pregunta.
+ *   - `isReadOnly`: indica si el examen está en modo solo lectura.
+ *   - `currentSelected`: conjunto de índices de respuestas seleccionadas en la pregunta actual.
+ *   - `hasAnswered`: indica si la pregunta actual tiene al menos una respuesta seleccionada.
+ *   - `submitting`: indica si se está enviando el examen.
+ *   - `timeRemaining`: segundos restantes del temporizador, o null en modo admin.
+ *   - `isExpired`: indica si el temporizador ha llegado a cero.
+ *   - `toggleAnswer`: selecciona o deselecciona una respuesta por su índice.
+ *   - `goNext`: avanza a la siguiente pregunta.
+ *   - `submitAnswers`: envía las respuestas e invoca el callback con el resultado.
+ */
 export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
   const { showAlert } = useAlert();
   const preguntas = examen.preguntas ?? [];

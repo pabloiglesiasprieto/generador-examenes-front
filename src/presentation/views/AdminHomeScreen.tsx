@@ -6,13 +6,21 @@ import { useAuth } from '../viewmodels/AuthContext';
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'AdminHome'>;
 
+/** Definición de una opción del menú de administración. */
 interface MenuOption {
+  /** Nombre de la ruta de destino en AdminStackParamList. */
   key: keyof AdminStackParamList;
+  /** Emoji representativo de la sección. */
   emoji: string;
+  /** Título de la tarjeta. */
   title: string;
+  /** Descripción breve de la sección. */
   subtitle: string;
+  /** Etiqueta de categoría mostrada en la tarjeta. */
   tag: string;
+  /** Color de acento de la tarjeta en formato hexadecimal. */
   color: string;
+  /** Si es true, la tarjeta solo se muestra a usuarios con rol ADMIN. */
   adminOnly?: boolean;
 }
 
@@ -53,6 +61,13 @@ const OPTIONS: MenuOption[] = [
   },
 ];
 
+/**
+ * Tarjeta de navegación del panel de administración con animación de escala al pulsarla.
+ *
+ * @param props.opt - Datos de la opción de menú a mostrar.
+ * @param props.onPress - Callback invocado al pulsar la tarjeta.
+ * @returns Tarjeta animada que navega a la sección correspondiente.
+ */
 function AdminCard({
   opt,
   onPress,
@@ -101,6 +116,14 @@ function AdminCard({
   );
 }
 
+/**
+ * Pantalla principal del panel de administración.
+ * Muestra una cuadrícula de tarjetas de navegación filtradas según el rol del usuario:
+ * los profesores ven solo las secciones de contenido; los administradores ven todas.
+ *
+ * @param props.navigation - Objeto de navegación del stack de administración.
+ * @returns Vista scrollable con las tarjetas de acceso a las secciones de administración.
+ */
 export default function AdminHomeScreen({ navigation }: Props) {
   const { isAdmin, user } = useAuth();
 

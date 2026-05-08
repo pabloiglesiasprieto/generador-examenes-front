@@ -2,36 +2,77 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { ExamNodeInfo } from '../../domain/entities/Examen';
 
+/**
+ * Props del componente {@link ExamNode}.
+ */
 interface Props {
+  /** Información enriquecida del examen: datos, estado, estrellas y mejor nota. */
   info: ExamNodeInfo;
+  /** Índice del nodo en la lista, usado para la posición alternada izquierda/derecha. */
   index: number;
+  /** Callback invocado al pulsar el nodo del examen. */
   onPress: () => void;
+  /** Indica si el usuario actual es profesor o administrador, para mostrar el botón de eliminar. */
   isProfesor?: boolean;
+  /** Callback opcional invocado al pulsar el botón de eliminar (solo visible si es profesor). */
   onDelete?: () => void;
 }
 
+/**
+ * Genera una representación visual de estrellas rellenas y vacías.
+ *
+ * @param stars - Número de estrellas rellenas (0-3).
+ * @returns Cadena de texto con los símbolos de estrellas.
+ */
 function getStarsFilled(stars: number) {
   return ['★', '★', '★'].map((s, i) => (i < stars ? s : '☆')).join('');
 }
 
+/**
+ * Calcula la etiqueta y el color de dificultad según el número de preguntas del examen.
+ *
+ * @param qCount - Número total de preguntas del examen.
+ * @returns Objeto con la etiqueta y el color correspondientes a la dificultad.
+ */
 function getDifficulty(qCount: number) {
   if (qCount >= 30) return { label: 'Difícil', color: '#EF4444' };
   if (qCount >= 20) return { label: 'Medio', color: '#F59E0B' };
   return { label: 'Fácil', color: '#10B981' };
 }
 
+/**
+ * Determina el color del nodo según su estado y si el alumno lo suspendió.
+ *
+ * @param status - Estado del nodo: 'available' o 'completed'.
+ * @param isFailed - Indica si el alumno suspendió el examen (nota < 5).
+ * @returns Color hexadecimal del nodo.
+ */
 function getNodeColor(status: string, isFailed: boolean) {
   if (status !== 'completed') return '#7C3AED';
   return isFailed ? '#EF4444' : '#10B981';
 }
 
+/**
+ * Props del subcomponente {@link CardStatus}.
+ */
 interface CardStatusProps {
+  /** Indica si el alumno suspendió el examen. */
   isFailed: boolean;
+  /** Número de estrellas obtenidas (0-3). */
   stars: number;
+  /** Mejor nota obtenida en el examen. */
   bestNota: number;
+  /** Color del nodo según el estado del examen. */
   nodeColor: string;
 }
 
+/**
+ * Muestra el estado de la tarjeta de un examen completado:
+ * estrellas y nota si fue aprobado, o etiqueta "Suspenso" con la nota si fue suspendido.
+ *
+ * @param props - Props del subcomponente.
+ * @returns El componente de estado de la tarjeta.
+ */
 function CardStatus({ isFailed, stars, bestNota, nodeColor }: Readonly<CardStatusProps>) {
   if (isFailed) {
     return (
@@ -53,6 +94,13 @@ function CardStatus({ isFailed, stars, bestNota, nodeColor }: Readonly<CardStatu
   );
 }
 
+/**
+ * Muestra el indicador de estado "Disponible" para los nodos de examen no completados.
+ *
+ * @param props - Props del subcomponente.
+ * @param props.nodeColor - Color del punto e indicador textual.
+ * @returns El componente de estado disponible.
+ */
 function AvailableStatus({ nodeColor }: Readonly<{ nodeColor: string }>) {
   return (
     <View style={styles.availableRow}>
@@ -62,6 +110,19 @@ function AvailableStatus({ nodeColor }: Readonly<{ nodeColor: string }>) {
   );
 }
 
+/**
+ * Componente de nodo de examen para el mapa de juego.
+ * Muestra la información del examen con animaciones pulsantes para los disponibles,
+ * indicador de dificultad y estado (aprobado, suspenso o disponible).
+ *
+ * @param props - Props del componente.
+ * @param props.info - Información enriquecida del examen.
+ * @param props.index - Índice del nodo para la disposición alternada.
+ * @param props.onPress - Callback al pulsar el nodo.
+ * @param props.isProfesor - Muestra el botón de eliminar si es true.
+ * @param props.onDelete - Callback al pulsar el botón de eliminar.
+ * @returns El componente de nodo de examen.
+ */
 export default function ExamNode({ info, index, onPress, isProfesor, onDelete }: Readonly<Props>) {
   const { examen, status, stars, bestNota } = info;
   const isRight = index % 2 === 0;

@@ -14,6 +14,12 @@ import { EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../domain/entit
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'Dashboard'>;
 
+/**
+ * Devuelve el color de la barra de progreso según la nota media.
+ *
+ * @param nota - Nota media o null si no hay datos.
+ * @returns Color hexadecimal: verde para nota >=7, ámbar para >=5, rojo para <5 y gris para null.
+ */
 function getBarColor(nota: number | null): string {
   if (nota == null) return '#2D2D44';
   if (nota >= 7) return '#10B981';
@@ -21,6 +27,13 @@ function getBarColor(nota: number | null): string {
   return '#EF4444';
 }
 
+/**
+ * Tarjeta de estadísticas de un examen con barra de nota media y acceso al historial.
+ *
+ * @param props.item - Datos estadísticos del examen.
+ * @param props.onVerResultados - Callback invocado al pulsar el enlace de historial de resultados.
+ * @returns Tarjeta con nota media, barra de progreso, totales y enlace al detalle.
+ */
 function ExamenStatCard({
   item,
   onVerResultados,
@@ -57,6 +70,13 @@ function ExamenStatCard({
   );
 }
 
+/**
+ * Tarjeta de ranking de un alumno con medalla de posición y nota media.
+ *
+ * @param props.item - Datos del alumno en el ranking.
+ * @param props.position - Posición del alumno en el ranking (1-N).
+ * @returns Fila de ranking con medalla, nombre, número de exámenes y nota media.
+ */
 function AlumnoRankCard({ item, position }: Readonly<{ item: AlumnoRankingItem; position: number }>) {
   const media = item.nota_media ?? 0;
   const medalColor = position === 1 ? '#F59E0B' : position === 2 ? '#94A3B8' : position === 3 ? '#CD7F32' : '#2D2D44';
@@ -78,6 +98,13 @@ function AlumnoRankCard({ item, position }: Readonly<{ item: AlumnoRankingItem; 
   );
 }
 
+/**
+ * Tarjeta de estadística de una pregunta con tasa de fallo y barra de porcentaje.
+ *
+ * @param props.item - Datos estadísticos de la pregunta.
+ * @param props.position - Posición en el ranking de preguntas más falladas (1-N).
+ * @returns Tarjeta con enunciado, tasa de fallo coloreada, barra de progreso y contadores.
+ */
 function PreguntaFalloCard({ item, position }: Readonly<{ item: EstadisticaPreguntaDTO; position: number }>) {
   const tasa = item.tasa_fallo ?? 0;
   const barColor = tasa >= 70 ? '#EF4444' : tasa >= 40 ? '#F59E0B' : '#10B981';
@@ -106,6 +133,13 @@ function PreguntaFalloCard({ item, position }: Readonly<{ item: EstadisticaPregu
   );
 }
 
+/**
+ * Pantalla de estadísticas del sistema para administradores y profesores.
+ * Muestra notas por examen, las preguntas más falladas y el ranking de alumnos.
+ *
+ * @param props.navigation - Objeto de navegación del stack de administración.
+ * @returns Vista scrollable con secciones de estadísticas o indicadores de carga y error.
+ */
 export default function DashboardScreen({ navigation }: Props) {
   const { estadisticasExamenes, rankingAlumnos, estadisticasPreguntas, loading, error, reload } = useDashboardScreen();
 

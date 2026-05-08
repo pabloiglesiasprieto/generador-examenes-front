@@ -9,8 +9,23 @@ import {
 } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { EstadisticaAlumnoDTO, EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../domain/entities/Estadistica';
 
+/** Alias de tipo para los elementos del ranking de alumnos. */
 export type AlumnoRankingItem = EstadisticaAlumnoDTO;
 
+/**
+ * ViewModel del panel de estadísticas (Dashboard).
+ * Carga automáticamente al recibir el foco las estadísticas de exámenes, el ranking de alumnos
+ * y las estadísticas de preguntas más falladas llamando a los casos de uso correspondientes.
+ *
+ * @precondition El usuario debe tener rol ADMIN o PROFESOR.
+ * @returns Objeto con los datos del dashboard y funciones de control:
+ *   - `estadisticasExamenes`: estadísticas agregadas de cada examen.
+ *   - `rankingAlumnos`: ranking de alumnos ordenado por nota media.
+ *   - `estadisticasPreguntas`: preguntas ordenadas por tasa de fallo descendente.
+ *   - `loading`: indicador de carga.
+ *   - `error`: mensaje de error o null.
+ *   - `reload`: función para recargar los datos manualmente.
+ */
 export function useDashboardScreen() {
   const [estadisticasExamenes, setEstadisticasExamenes] = useState<EstadisticaExamenDTO[]>([]);
   const [rankingAlumnos, setRankingAlumnos] = useState<AlumnoRankingItem[]>([]);

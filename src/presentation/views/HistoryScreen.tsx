@@ -19,6 +19,15 @@ import { ResultadoDTO } from '../../domain/entities/Examen';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'History'>;
 
+/**
+ * Modal de detalle de un intento de examen.
+ * Muestra el enunciado de cada pregunta, la respuesta enviada por el alumno
+ * y la respuesta correcta cuando el intento ha sido incorrecto.
+ *
+ * @param props.resultado - Resultado del intento a mostrar, o null para ocultar el modal.
+ * @param props.onClose - Callback invocado al cerrar el modal.
+ * @returns Modal de pantalla completa con el detalle de cada pregunta del intento.
+ */
 function DetalleModal({
   resultado,
   onClose,
@@ -104,6 +113,16 @@ function DetalleModal({
   );
 }
 
+/**
+ * Tarjeta animada de un intento de examen en el historial del alumno.
+ * Muestra la nota, etiqueta de calificación, estrellas, barra de progreso
+ * y contadores de preguntas correctas e incorrectas.
+ *
+ * @param props.item - Datos del resultado del intento.
+ * @param props.index - Índice en la lista, usado para escalonar la animación de entrada.
+ * @param props.onPress - Callback invocado al pulsar la tarjeta para ver el detalle.
+ * @returns Tarjeta animada con la información resumida del intento.
+ */
 function HistoryCard({
   item,
   index,
@@ -184,6 +203,14 @@ function HistoryCard({
   );
 }
 
+/**
+ * Pantalla de historial de exámenes del alumno autenticado.
+ * Permite filtrar por examen, muestra estadísticas agregadas (media, mejor nota, estrellas)
+ * y abre el modal de detalle al pulsar cualquier intento.
+ *
+ * @param props.navigation - Objeto de navegación del stack de perfil.
+ * @returns Vista con lista filtrable de intentos de examen y resumen estadístico.
+ */
 export default function HistoryScreen({ navigation }: Readonly<Props>) {
   const { user } = useAuth();
   const history = useHistoryScreen(user?.id);

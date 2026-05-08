@@ -2,6 +2,14 @@ import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useAlert } from '../viewmodels/AlertContext';
 
+/**
+ * Modal de alerta global de la aplicación.
+ * Renderiza un diálogo emergente con título, mensaje y botones configurables
+ * según las opciones proporcionadas a través del contexto {@link AlertContext}.
+ * No recibe props: consume el contexto {@link useAlert} directamente.
+ *
+ * @returns El componente modal de alerta, o null si no hay alerta activa.
+ */
 export function AppAlertModal() {
   const { alertOptions, dismiss } = useAlert();
 

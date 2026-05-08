@@ -4,6 +4,25 @@ import { TYPES } from '../../infrastructure/config/types';
 import { IGetResultadosAlumnoUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { ResultadoDTO } from '../../domain/entities/Examen';
 
+/**
+ * ViewModel de la pantalla de historial de exámenes del alumno.
+ * Carga los resultados del alumno al montarse y calcula estadísticas derivadas.
+ * Permite filtrar por examen concreto y abrir el detalle de un intento.
+ *
+ * @param userId - Identificador del alumno autenticado, o undefined si no está disponible.
+ * @precondition El usuario debe estar autenticado y tener rol ALUMNO.
+ * @returns Objeto con el estado y los handlers:
+ *   - `loading`: indicador de carga inicial.
+ *   - `resultadosFiltrados`: resultados filtrados según el examen seleccionado.
+ *   - `examenesIds`: lista de IDs únicos de exámenes con al menos un intento.
+ *   - `filtroExamen`: ID del examen filtrado actualmente, o null para ver todos.
+ *   - `setFiltroExamen`: setter del filtro de examen.
+ *   - `selectedResultado`: resultado seleccionado para ver el detalle, o null.
+ *   - `openDetalle`, `closeDetalle`: abrir y cerrar el detalle de un intento.
+ *   - `avg`: nota media de los resultados filtrados.
+ *   - `best`: mejor nota de los resultados filtrados.
+ *   - `totalEstrellas`: suma de estrellas obtenidas en los resultados filtrados.
+ */
 export function useHistoryScreen(userId: number | undefined) {
   const [resultados, setResultados] = useState<ResultadoDTO[]>([]);
   const [loading, setLoading] = useState(true);

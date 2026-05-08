@@ -18,6 +18,12 @@ import { ResultadoDTO } from '../../domain/entities/Examen';
 type ExamResultsRoute = RouteProp<AdminStackParamList, 'ExamResults'>;
 type ExamResultsNav = NativeStackNavigationProp<AdminStackParamList, 'ExamResults'>;
 
+/**
+ * Formatea un número de segundos en formato mm:ss.
+ *
+ * @param seconds - Número de segundos a formatear, o undefined si no hay datos.
+ * @returns Cadena en formato "m:ss", o "—" si el valor es undefined.
+ */
 function formatTime(seconds?: number): string {
   if (seconds == null) return '—';
   const m = Math.floor(seconds / 60);
@@ -25,6 +31,13 @@ function formatTime(seconds?: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+/**
+ * Pantalla de historial de resultados de un examen concreto para administradores.
+ * Carga los resultados del examen indicado en los parámetros de ruta y los muestra
+ * en una tabla con columnas de alumno, intento, nota y tiempo empleado.
+ *
+ * @returns Vista con tabla de resultados, o indicadores de carga, error o lista vacía.
+ */
 export default function ExamResultsScreen() {
   const navigation = useNavigation<ExamResultsNav>();
   const route = useRoute<ExamResultsRoute>();

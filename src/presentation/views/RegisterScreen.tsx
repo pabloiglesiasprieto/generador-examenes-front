@@ -20,6 +20,15 @@ import { useAlert } from '../viewmodels/AlertContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
+/**
+ * Pantalla de registro de nuevos usuarios.
+ * Recoge nombre, apellidos, correo y contraseña, valida los datos localmente
+ * (campos obligatorios, coincidencia de contraseñas y requisitos mínimos de seguridad)
+ * y crea la cuenta mediante el caso de uso de registro.
+ *
+ * @param props.navigation - Objeto de navegación del stack de autenticación.
+ * @returns Vista de formulario de registro con validación y botón de creación de cuenta.
+ */
 export default function RegisterScreen({ navigation }: Props) {
   const [form, setForm] = useState({
     nombre: '',
@@ -73,7 +82,7 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Header */}

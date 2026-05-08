@@ -13,12 +13,40 @@ import {
 } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { UsuarioDTO, RolDTO } from '../../domain/entities/Usuario';
 
+/**
+ * Extrae el mensaje de error de una respuesta de la API o devuelve un mensaje de reserva.
+ *
+ * @param err - Error capturado en el bloque catch.
+ * @param fallback - Mensaje a devolver si no hay mensaje de la API.
+ * @returns Mensaje de error legible para el usuario.
+ */
 function extractApiError(err: unknown, fallback: string): string {
   return (
     (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? fallback
   );
 }
 
+/**
+ * ViewModel de la pantalla de gestión de usuarios.
+ * Carga la lista de usuarios y roles disponibles, permite abrir el detalle de un usuario
+ * para consultar y modificar sus roles, y gestiona la eliminación de usuarios.
+ *
+ * @param currentUserId - Identificador del usuario autenticado actualmente,
+ *   usado para impedir que el administrador se elimine a sí mismo.
+ * @precondition El usuario autenticado debe tener rol ADMIN.
+ * @returns Objeto con el estado y los handlers de la pantalla de usuarios:
+ *   - `usuarios`: lista completa de usuarios cargados.
+ *   - `loading`: indicador de carga inicial.
+ *   - `selectedUser`: usuario seleccionado para ver el detalle, o null.
+ *   - `userRoles`: roles asignados actualmente al usuario seleccionado.
+ *   - `allRoles`: lista de todos los roles disponibles en el sistema.
+ *   - `modalVisible`: indica si el modal de detalle está visible.
+ *   - `rolLoading`: indica si se está cargando o modificando un rol.
+ *   - `openUserDetail`: abre el modal de detalle y carga los roles del usuario.
+ *   - `closeModal`: cierra el modal de detalle.
+ *   - `handleToggleRol`: asigna o revoca un rol del usuario seleccionado.
+ *   - `handleDelete`: solicita confirmación y elimina un usuario.
+ */
 export function useUsersScreen(currentUserId: number | undefined) {
   const { showAlert } = useAlert();
   const [usuarios, setUsuarios] = useState<UsuarioDTO[]>([]);

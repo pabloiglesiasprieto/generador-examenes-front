@@ -28,6 +28,14 @@ const TYPE_COLORS: Record<string, string> = {
   INFO: '#06B6D4',
 };
 
+/**
+ * Pantalla de monitorización de incidencias del sistema para administradores.
+ * Carga todas las incidencias al entrar en foco, permite filtrar por nombre de clase
+ * y muestra el detalle de cada incidencia en un modal de pantalla completa.
+ *
+ * @precondition El usuario autenticado debe tener rol ADMIN.
+ * @returns Vista con lista de incidencias filtrable y modal de detalle.
+ */
 export default function IncidenciasScreen() {
   const { showAlert } = useAlert();
   const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();

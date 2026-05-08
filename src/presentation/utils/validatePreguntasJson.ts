@@ -1,13 +1,24 @@
 import { PreguntaInput, RespuestaInput } from '../../domain/entities/Pregunta';
 
+/**
+ * Representa un error de validación encontrado en el JSON o CSV de preguntas.
+ */
 export interface JsonValidationError {
+  /** Ruta dentro del objeto o CSV donde se encontró el error (ej: 'preguntas[0].enunciado'). */
   path: string;
+  /** Descripción del error de validación. */
   message: string;
 }
 
+/**
+ * Resultado de la validación de un JSON de preguntas.
+ */
 export interface JsonValidationResult {
+  /** Indica si el JSON es válido (sin errores). */
   valid: boolean;
+  /** Lista de errores de validación encontrados. */
   errors: JsonValidationError[];
+  /** Lista de preguntas parseadas y validadas, presente solo si la validación fue exitosa. */
   preguntas?: PreguntaInput[];
 }
 
@@ -16,6 +27,15 @@ const REQUIRED_ROOT_KEYS = ['enunciado', 'es_multiple', 'respuestas'];
 const ALLOWED_RESPUESTA_KEYS = new Set(['texto', 'es_correcta']);
 const VALID_DIFICULTADES = new Set(['FACIL', 'MEDIA', 'DIFICIL']);
 
+/**
+ * Valida un objeto de respuesta del JSON de preguntas.
+ * Comprueba que tenga los campos `texto` (string no vacío) y `es_correcta` (boolean).
+ *
+ * @param r - Objeto de respuesta a validar.
+ * @param path - Ruta del objeto para mensajes de error.
+ * @param errors - Array donde se acumulan los errores encontrados.
+ * @returns true si el objeto es una {@link RespuestaInput} válida, false en caso contrario.
+ */
 function validateRespuesta(
   r: unknown,
   path: string,
@@ -61,6 +81,16 @@ function validateRespuesta(
   return ok;
 }
 
+/**
+ * Valida un objeto de pregunta del JSON importado.
+ * Comprueba los campos requeridos (`enunciado`, `es_multiple`, `respuestas`), los opcionales
+ * (`dificultad`, `categoria`) y la coherencia de las respuestas correctas.
+ *
+ * @param p - Objeto de pregunta a validar.
+ * @param path - Ruta del objeto para mensajes de error.
+ * @param errors - Array donde se acumulan los errores encontrados.
+ * @returns true si el objeto es una {@link PreguntaInput} válida, false en caso contrario.
+ */
 function validatePregunta(
   p: unknown,
   path: string,
@@ -164,6 +194,14 @@ function validatePregunta(
   return ok;
 }
 
+/**
+ * Valida el contenido de un JSON de preguntas antes de importarlo al sistema.
+ * Acepta tanto un objeto único como un array de preguntas.
+ * Realiza validación estructural completa incluyendo tipos, valores permitidos y coherencia lógica.
+ *
+ * @param raw - Cadena de texto con el JSON a validar.
+ * @returns Resultado de la validación con errores y, si es válido, las preguntas parseadas.
+ */
 export function validatePreguntasJson(raw: string): JsonValidationResult {
   const errors: JsonValidationError[] = [];
 

@@ -29,6 +29,16 @@ const DIFICULTAD_COLORS: Record<string, string> = {
   DIFICIL: '#EF4444',
 };
 
+/**
+ * Tarjeta de una pregunta en la lista del banco de preguntas.
+ * Muestra identificador, tipo, número de respuestas, dificultad, categoría y enunciado,
+ * con botones de edición y eliminación.
+ *
+ * @param props.item - Datos de la pregunta a mostrar.
+ * @param props.onEdit - Callback invocado al pulsar el botón de editar.
+ * @param props.onDelete - Callback invocado al pulsar el botón de eliminar.
+ * @returns Tarjeta de pregunta con badges, enunciado y acciones.
+ */
 function PreguntaCard({
   item,
   onEdit,
@@ -75,6 +85,19 @@ function PreguntaCard({
   );
 }
 
+/**
+ * Fila de edición de una respuesta en el formulario de pregunta.
+ * Permite marcar la respuesta como correcta, editar su texto y eliminarla
+ * cuando hay más de dos respuestas.
+ *
+ * @param props.respuesta - Datos actuales de la respuesta.
+ * @param props.index - Índice de la respuesta en la lista (para el placeholder).
+ * @param props.canRemove - Indica si el botón de eliminar debe mostrarse.
+ * @param props.onToggleCorrect - Callback invocado al alternar la corrección de la respuesta.
+ * @param props.onChangeText - Callback invocado al cambiar el texto de la respuesta.
+ * @param props.onRemove - Callback invocado al eliminar la respuesta.
+ * @returns Fila de respuesta con indicador de corrección, campo de texto y botón de eliminar.
+ */
 function RespuestaRow({
   respuesta,
   index,
@@ -116,6 +139,13 @@ function RespuestaRow({
 
 type QState = ReturnType<typeof useQuestionsScreen>;
 
+/**
+ * Pestaña de formulario del modal de creación/edición de pregunta.
+ * Permite editar el enunciado, tipo de respuesta, dificultad, categoría y respuestas.
+ *
+ * @param props.q - Estado y handlers del ViewModel de la pantalla de preguntas.
+ * @returns Vista scrollable con los campos del formulario de pregunta.
+ */
 function FormTab({ q }: Readonly<{ q: QState }>) {
   return (
     <ScrollView contentContainerStyle={styles.modalBody}>
@@ -199,6 +229,13 @@ function FormTab({ q }: Readonly<{ q: QState }>) {
   );
 }
 
+/**
+ * Lista de errores de validación de importación JSON o CSV.
+ * No renderiza nada si la lista de errores está vacía.
+ *
+ * @param props.errors - Lista de errores de validación con ruta y mensaje.
+ * @returns Caja de errores coloreada en rojo con la lista de problemas encontrados, o null.
+ */
 function JsonErrorList({ errors }: Readonly<{ errors: JsonValidationError[] }>) {
   if (errors.length === 0) return null;
   return (
@@ -216,6 +253,14 @@ function JsonErrorList({ errors }: Readonly<{ errors: JsonValidationError[] }>) 
   );
 }
 
+/**
+ * Pestaña de importación JSON del modal de creación de preguntas.
+ * Permite pegar un JSON con una o varias preguntas, valida el formato
+ * y las importa al banco de preguntas.
+ *
+ * @param props.q - Estado y handlers del ViewModel de la pantalla de preguntas.
+ * @returns Vista scrollable con campo JSON, ayuda de formato, errores y botón de importación.
+ */
 function JsonTab({ q }: Readonly<{ q: QState }>) {
   return (
     <ScrollView contentContainerStyle={styles.modalBody}>
@@ -255,6 +300,12 @@ function JsonTab({ q }: Readonly<{ q: QState }>) {
   );
 }
 
+/**
+ * Genera y descarga (o comparte) un archivo Excel de plantilla para importar preguntas via CSV.
+ * En web descarga directamente el archivo; en nativo usa la API de compartición del sistema.
+ *
+ * @returns Promesa que se resuelve cuando la descarga o compartición finaliza.
+ */
 async function descargarPlantillaExcel() {
   const cabecera = [
     'enunciado',
@@ -302,6 +353,14 @@ async function descargarPlantillaExcel() {
   }
 }
 
+/**
+ * Pestaña de importación CSV del modal de creación de preguntas.
+ * Permite descargar la plantilla Excel, pegar el contenido CSV,
+ * validarlo y enviarlo al backend para importar las preguntas.
+ *
+ * @param props.q - Estado y handlers del ViewModel de la pantalla de preguntas.
+ * @returns Vista scrollable con botón de plantilla, campo CSV, ayuda de formato, errores y botón de importación.
+ */
 function CsvTab({ q }: Readonly<{ q: QState }>) {
   return (
     <ScrollView contentContainerStyle={styles.modalBody}>
@@ -342,6 +401,16 @@ function CsvTab({ q }: Readonly<{ q: QState }>) {
   );
 }
 
+/**
+ * Pantalla de gestión del banco de preguntas para administradores y profesores.
+ * Lista las preguntas con paginación infinita y filtros por dificultad y categoría.
+ * Permite crear preguntas individualmente (formulario), en lote vía JSON o vía CSV,
+ * editarlas y eliminarlas con confirmación.
+ *
+ * @precondition El usuario autenticado debe tener rol ADMIN o PROFESOR.
+ * @returns Vista con lista de preguntas filtrable, modal de creación/edición (con pestañas)
+ *   y modal de confirmación de eliminación.
+ */
 export default function QuestionsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const q = useQuestionsScreen();

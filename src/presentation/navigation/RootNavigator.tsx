@@ -6,6 +6,7 @@ import LoginScreen from '../views/LoginScreen';
 import RegisterScreen from '../views/RegisterScreen';
 import AppNavigator from './AppNavigator';
 
+/** Lista de parámetros de las pantallas del stack de autenticación. */
 export type AuthStackParamList = {
   Login: undefined;
   Register: undefined;
@@ -13,6 +14,15 @@ export type AuthStackParamList = {
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
+/**
+ * Navegador raíz de la aplicación.
+ * Decide qué navegador mostrar según el estado de autenticación:
+ * - Muestra un spinner mientras se comprueba la sesión almacenada.
+ * - Muestra el stack de autenticación (Login/Register) si no hay usuario.
+ * - Muestra {@link AppNavigator} si el usuario está autenticado.
+ *
+ * @returns El navegador raíz según el estado de autenticación.
+ */
 export default function RootNavigator() {
   const { user, loading } = useAuth();
 

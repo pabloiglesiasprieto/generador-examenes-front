@@ -4,6 +4,7 @@ import { TYPES } from '../../infrastructure/config/types';
 import { ILoginUseCase } from '../../domain/interfaces/useCases/auth/ILoginUseCase';
 import { API_BASE_URL } from '../../data/apiconnection/apiClient';
 
+/** Estado interno del formulario de inicio de sesión. */
 interface LoginFormState {
   correo: string;
   password: string;
@@ -12,6 +13,13 @@ interface LoginFormState {
   showPassword: boolean;
 }
 
+/**
+ * Extrae un mensaje de error legible a partir del error capturado durante el login.
+ * Distingue entre errores de respuesta del servidor, errores de red y errores genéricos.
+ *
+ * @param err - Error capturado en el bloque catch del login.
+ * @returns Cadena de texto con el mensaje de error a mostrar al usuario.
+ */
 function getLoginErrorMessage(err: unknown): string {
   const e = err as {
     response?: { status?: number; data?: { message?: string; error?: string } };
@@ -28,6 +36,21 @@ function getLoginErrorMessage(err: unknown): string {
   return e.message ?? 'Error desconocido';
 }
 
+/**
+ * ViewModel del formulario de inicio de sesión.
+ * Gestiona el estado del formulario, la validación básica y la llamada al caso de uso de login.
+ *
+ * @param onSuccess - Callback invocado con el token JWT cuando el login es exitoso.
+ * @returns Objeto con el estado del formulario y los handlers:
+ *   - `correo`: valor del campo de correo.
+ *   - `password`: valor del campo de contraseña.
+ *   - `loading`: indica si hay una petición en curso.
+ *   - `error`: mensaje de error o cadena vacía si no hay error.
+ *   - `showPassword`: indica si la contraseña es visible.
+ *   - `setCorreo`, `setPassword`: setters de los campos.
+ *   - `toggleShowPassword`: alterna la visibilidad de la contraseña.
+ *   - `handleLogin`: ejecuta el login con las credenciales actuales.
+ */
 export function useLoginForm(onSuccess: (token: string) => Promise<void>) {
   const [state, setState] = useState<LoginFormState>({
     correo: '',

@@ -16,6 +16,16 @@ import { useAuth } from '../viewmodels/AuthContext';
 import { useUsersScreen } from '../viewmodels/useUsersScreen';
 import { UsuarioDTO, RolDTO } from '../../domain/entities/Usuario';
 
+/**
+ * Tarjeta de usuario en la lista de gestión de usuarios.
+ * Muestra el avatar con la inicial, nombre completo, correo y estado activo/inactivo,
+ * con un botón de acceso al detalle y otro de eliminación.
+ *
+ * @param props.item - Datos del usuario a mostrar.
+ * @param props.onPress - Callback invocado al pulsar la tarjeta para abrir el detalle.
+ * @param props.onDelete - Callback invocado al pulsar el botón de eliminar.
+ * @returns Tarjeta de usuario con información y acciones.
+ */
 function UserCard({
   item,
   onPress,
@@ -50,6 +60,15 @@ function UserCard({
   );
 }
 
+/**
+ * Fila de un rol en el modal de gestión de roles de un usuario.
+ * Muestra un indicador de selección y el nombre del rol; al pulsarla se asigna o revoca el rol.
+ *
+ * @param props.rol - Datos del rol a mostrar.
+ * @param props.active - Indica si el rol está actualmente asignado al usuario.
+ * @param props.onToggle - Callback invocado al pulsar la fila para asignar o revocar el rol.
+ * @returns Fila de rol con indicador visual de estado activo.
+ */
 function RolRow({
   rol,
   active,
@@ -68,6 +87,14 @@ function RolRow({
   );
 }
 
+/**
+ * Pantalla de gestión de usuarios del sistema.
+ * Lista todos los usuarios con opciones para ver y modificar sus roles mediante un
+ * modal y para eliminarlos con confirmación de alerta.
+ *
+ * @precondition El usuario autenticado debe tener rol ADMIN.
+ * @returns Vista con lista de usuarios, modal de detalle/roles y controles de eliminación.
+ */
 export default function UsersScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const { user: me } = useAuth();

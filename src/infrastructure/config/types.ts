@@ -1,16 +1,20 @@
+/**
+ * Símbolos de identificación de los tipos registrados en el contenedor de inversión de control (IoC).
+ * Cada símbolo sirve como token único para enlazar interfaces con sus implementaciones concretas.
+ */
 export const TYPES = {
-  // Repositories
+  // Repositorios
   IAuthRepository: Symbol.for('IAuthRepository'),
   IExamenRepository: Symbol.for('IExamenRepository'),
   IPreguntaRepository: Symbol.for('IPreguntaRepository'),
   IUsuarioRepository: Symbol.for('IUsuarioRepository'),
   IIncidenciaRepository: Symbol.for('IIncidenciaRepository'),
 
-  // UseCases - Auth
+  // Casos de uso - Autenticación
   ILoginUseCase: Symbol.for('ILoginUseCase'),
   IRegisterUseCase: Symbol.for('IRegisterUseCase'),
 
-  // UseCases - Examenes
+  // Casos de uso - Exámenes
   IGetExamenesUseCase: Symbol.for('IGetExamenesUseCase'),
   IGetExamenByIdUseCase: Symbol.for('IGetExamenByIdUseCase'),
   ICreateExamenUseCase: Symbol.for('ICreateExamenUseCase'),
@@ -25,7 +29,7 @@ export const TYPES = {
   IGetEstadisticasPreguntasUseCase: Symbol.for('IGetEstadisticasPreguntasUseCase'),
   IGetCategoriasUseCase: Symbol.for('IGetCategoriasUseCase'),
 
-  // UseCases - Preguntas
+  // Casos de uso - Preguntas
   IGetAllPreguntasUseCase: Symbol.for('IGetAllPreguntasUseCase'),
   IGetPreguntaByIdUseCase: Symbol.for('IGetPreguntaByIdUseCase'),
   ICreatePreguntaUseCase: Symbol.for('ICreatePreguntaUseCase'),
@@ -33,7 +37,7 @@ export const TYPES = {
   IDeletePreguntaUseCase: Symbol.for('IDeletePreguntaUseCase'),
   IImportarCsvPreguntasUseCase: Symbol.for('IImportarCsvPreguntasUseCase'),
 
-  // UseCases - Usuarios
+  // Casos de uso - Usuarios
   IGetAllRolesUseCase: Symbol.for('IGetAllRolesUseCase'),
   IGetAllUsuariosUseCase: Symbol.for('IGetAllUsuariosUseCase'),
   IGetUsuarioByIdUseCase: Symbol.for('IGetUsuarioByIdUseCase'),
@@ -43,7 +47,7 @@ export const TYPES = {
   IAsignarRolUseCase: Symbol.for('IAsignarRolUseCase'),
   IBorrarRolUseCase: Symbol.for('IBorrarRolUseCase'),
 
-  // UseCases - Incidencias
+  // Casos de uso - Incidencias
   IGetAllIncidenciasUseCase: Symbol.for('IGetAllIncidenciasUseCase'),
   IGetIncidenciaByIdUseCase: Symbol.for('IGetIncidenciaByIdUseCase'),
   IGetIncidenciasByClaseUseCase: Symbol.for('IGetIncidenciasByClaseUseCase'),

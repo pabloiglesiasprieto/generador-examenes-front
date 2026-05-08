@@ -25,6 +25,12 @@ import ExamNode from '../components/ExamNode';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Map'>;
 
+/**
+ * Calcula el número de estrellas obtenidas según la nota.
+ *
+ * @param nota - Nota numérica del intento (escala 0-10).
+ * @returns Número de estrellas: 3 para nota >=9, 2 para >=7, 1 para >=5, 0 en caso contrario.
+ */
 function calcStars(nota: number): number {
   if (nota >= 9) return 3;
   if (nota >= 7) return 2;
@@ -32,6 +38,16 @@ function calcStars(nota: number): number {
   return 0;
 }
 
+/**
+ * Pantalla principal de mapa de exámenes.
+ * Muestra los exámenes disponibles como nodos en un mapa vertical.
+ * Los alumnos ven su progreso y estrellas; los profesores y admins pueden
+ * crear y eliminar exámenes. Permite filtrar por categoría y refrescar con pull-to-refresh.
+ *
+ * @param props.navigation - Objeto de navegación del stack de juego.
+ * @returns Vista de mapa con nodos de examen, barra de categorías, modales de creación
+ *   y eliminación, y cabecera con información del usuario.
+ */
 export default function MapScreen({ navigation }: Props) {
   const { user, isAlumno, isProfesor, isAdmin, signOut } = useAuth();
   const [examenes, setExamenes] = useState<ExamenDTO[]>([]);

@@ -9,6 +9,8 @@ import {
   Modal,
   TextInput,
   Animated,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -26,6 +28,16 @@ import { UsuarioDTO } from '../../domain/entities/Usuario';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
+/**
+ * Pantalla de perfil del usuario autenticado.
+ * Muestra el avatar, nombre, correo, rol y estadísticas del alumno (nota media,
+ * mejor nota, estrellas y nivel de experiencia). Permite editar el nombre y apellidos,
+ * acceder al historial de exámenes, exportar exámenes en PDF/Excel (admin y profesor)
+ * y cerrar sesión.
+ *
+ * @param props.navigation - Objeto de navegación del stack de perfil.
+ * @returns Vista de perfil con estadísticas, acciones y modales de edición y cierre de sesión.
+ */
 export default function ProfileScreen({ navigation }: Props) {
   const { user, signOut, isAdmin, isProfesor, isAlumno } = useAuth();
   const { showAlert } = useAlert();
@@ -296,7 +308,10 @@ export default function ProfileScreen({ navigation }: Props) {
         animationType="fade"
         onRequestClose={() => setShowEditModal(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Editar perfil</Text>
             <View style={styles.editField}>
@@ -339,7 +354,7 @@ export default function ProfileScreen({ navigation }: Props) {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       <Modal

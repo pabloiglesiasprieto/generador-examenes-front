@@ -12,6 +12,12 @@ import { GameStackParamList } from '../navigation/AppNavigator';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Result'>;
 
+/**
+ * Calcula el número de estrellas obtenidas según la nota.
+ *
+ * @param nota - Nota numérica del examen (escala 0-10).
+ * @returns Número de estrellas: 3 para nota >=9, 2 para >=7, 1 para >=5, 0 en caso contrario.
+ */
 function getStars(nota: number): number {
   if (nota >= 9) return 3;
   if (nota >= 7) return 2;
@@ -19,6 +25,12 @@ function getStars(nota: number): number {
   return 0;
 }
 
+/**
+ * Devuelve la etiqueta, color y emoji de calificación según la nota.
+ *
+ * @param nota - Nota numérica del examen (escala 0-10).
+ * @returns Objeto con `label` (texto de calificación), `color` (hexadecimal) y `emoji`.
+ */
 function getGrade(nota: number): { label: string; color: string; emoji: string } {
   if (nota >= 9) return { label: 'Excelente', color: '#10B981', emoji: '🏆' };
   if (nota >= 7) return { label: 'Muy bien', color: '#06B6D4', emoji: '🌟' };
@@ -26,6 +38,16 @@ function getGrade(nota: number): { label: string; color: string; emoji: string }
   return { label: 'Suspenso', color: '#EF4444', emoji: '💪' };
 }
 
+/**
+ * Pantalla de resultados tras completar un examen.
+ * Muestra la nota obtenida con animación de entrada, estrellas, barra de aciertos,
+ * estadísticas de preguntas correctas e incorrectas, tiempo empleado y el detalle
+ * por pregunta. Ofrece botones para reintentar el examen o volver al mapa.
+ *
+ * @param props.navigation - Objeto de navegación del stack de juego.
+ * @param props.route - Parámetros de ruta con el resultado del examen.
+ * @returns Vista animada con el resumen del resultado y el detalle por pregunta.
+ */
 export default function ResultScreen({ navigation, route }: Props) {
   const { resultado } = route.params;
   const stars = getStars(resultado.nota);

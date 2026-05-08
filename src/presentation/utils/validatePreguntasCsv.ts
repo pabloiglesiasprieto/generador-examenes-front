@@ -1,12 +1,24 @@
 import { JsonValidationError } from './validatePreguntasJson';
 
+/**
+ * Resultado de la validación de un archivo CSV de preguntas.
+ */
 export interface CsvValidationResult {
+  /** Indica si el CSV es válido (sin errores). */
   valid: boolean;
+  /** Lista de errores de validación encontrados. */
   errors: JsonValidationError[];
 }
 
 const VALID_DIFICULTADES = new Set(['FACIL', 'MEDIA', 'DIFICIL', '']);
 
+/**
+ * Parsea una línea de CSV respetando los valores entre comillas dobles,
+ * incluyendo comas y comillas escapadas dentro de los valores.
+ *
+ * @param line - Línea de texto CSV a parsear.
+ * @returns Array de valores de la fila, con las comillas eliminadas.
+ */
 function parseCsvRow(line: string): string[] {
   const cols: string[] = [];
   let current = '';
@@ -31,6 +43,14 @@ function parseCsvRow(line: string): string[] {
   return cols;
 }
 
+/**
+ * Valida el contenido de un archivo CSV de preguntas antes de enviarlo al backend.
+ * Comprueba la estructura de la cabecera, el número mínimo de columnas, los valores
+ * de `es_multiple`, `dificultad` y que cada pregunta tenga al menos una respuesta correcta.
+ *
+ * @param raw - Contenido completo del archivo CSV como cadena de texto.
+ * @returns Resultado de la validación con la lista de errores encontrados.
+ */
 export function validatePreguntasCsv(raw: string): CsvValidationResult {
   const errors: JsonValidationError[] = [];
   const lines = raw.split(/\r?\n/);

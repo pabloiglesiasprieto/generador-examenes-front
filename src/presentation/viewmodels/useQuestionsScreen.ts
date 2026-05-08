@@ -16,7 +16,14 @@ import { PreguntaDTO, PreguntaInput, RespuestaInput } from '../../domain/entitie
 import { validatePreguntasJson, JsonValidationError } from '../utils/validatePreguntasJson';
 import { validatePreguntasCsv } from '../utils/validatePreguntasCsv';
 
+/** Contador global para generar claves únicas de filas de respuesta en formularios. */
 let _keyCounter = 0;
+
+/**
+ * Genera la siguiente clave única para una fila de respuesta.
+ *
+ * @returns Número entero incremental único.
+ */
 const nextKey = () => ++_keyCounter;
 
 const DEFAULT_RESPUESTAS: RespuestaInput[] = [
@@ -26,12 +33,26 @@ const DEFAULT_RESPUESTAS: RespuestaInput[] = [
 
 const PAGE_SIZE = 20;
 
+/**
+ * Extrae el mensaje de error de una respuesta de la API o devuelve un mensaje de reserva.
+ *
+ * @param err - Error capturado en el bloque catch.
+ * @param fallback - Mensaje a devolver si no hay mensaje de la API.
+ * @returns Mensaje de error legible para el usuario.
+ */
 function extractApiError(err: unknown, fallback: string): string {
   return (
     (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? fallback
   );
 }
 
+/**
+ * Valida los campos básicos del formulario de pregunta antes de guardarlo.
+ *
+ * @param enunciado - Texto del enunciado de la pregunta.
+ * @param respuestas - Lista de respuestas del formulario.
+ * @returns Mensaje de error si la validación falla, o null si es válido.
+ */
 function validatePreguntaForm(
   enunciado: string,
   respuestas: RespuestaInput[],
@@ -43,6 +64,31 @@ function validatePreguntaForm(
   return null;
 }
 
+/**
+ * ViewModel de la pantalla de gestión de preguntas del banco.
+ * Gestiona la carga paginada, el filtrado, la creación, edición, eliminación e importación
+ * de preguntas en formato formulario, JSON y CSV.
+ *
+ * @precondition El usuario debe tener rol ADMIN o PROFESOR.
+ * @returns Objeto con el estado y los handlers de la pantalla de preguntas:
+ *   - `preguntas`: lista de preguntas filtradas actualmente mostradas.
+ *   - `loading`, `loadingMore`, `hasMore`: estado de la carga paginada.
+ *   - `loadMore`: carga la siguiente página de preguntas.
+ *   - `modalVisible`: indica si el modal de crear/editar está visible.
+ *   - `editing`: pregunta en edición, o null si se está creando una nueva.
+ *   - `saving`, `deleting`: indicadores de operación en curso.
+ *   - `deleteTarget`, `deleteError`: pregunta a eliminar y error de eliminación.
+ *   - `enunciado`, `esMultiple`, `respuestas`, `dificultad`, `categoria`: campos del formulario.
+ *   - `filterDificultad`, `filterCategoria`: filtros activos de la lista.
+ *   - Setters para los campos del formulario y filtros.
+ *   - `openCreate`, `openEdit`, `closeModal`: control del modal.
+ *   - `addRespuesta`, `removeRespuesta`, `updateRespuesta`: gestión de respuestas en el formulario.
+ *   - `handleSave`: guarda la pregunta (crea o actualiza).
+ *   - `handleDelete`, `cancelDelete`, `confirmDelete`: flujo de eliminación con confirmación.
+ *   - `jsonInput`, `setJsonInput`, `jsonErrors`, `jsonImporting`, `handleJsonImport`: importación JSON.
+ *   - `csvInput`, `setCsvInput`, `csvErrors`, `csvImporting`, `handleCsvImport`: importación CSV.
+ *   - `activeTab`, `setActiveTab`: pestaña activa del modal (form | json | csv).
+ */
 export function useQuestionsScreen() {
   const { showAlert } = useAlert();
   const [preguntas, setPreguntas] = useState<PreguntaDTO[]>([]);

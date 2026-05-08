@@ -23,6 +23,17 @@ import { LoadingButton } from '../components/LoadingButton';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
+/**
+ * Hook de animaciones decorativas de la pantalla de inicio de sesión.
+ * Gestiona el fundido de entrada, el pulso del logotipo y el movimiento
+ * flotante de los dos orbes de fondo.
+ *
+ * @returns Objeto con los valores animados listos para aplicar a los componentes:
+ *   - `orb1X`, `orb1Y`: traslación del primer orbe.
+ *   - `orb2X`, `orb2Y`: traslación del segundo orbe.
+ *   - `pulse`: escala del anillo de pulso del logotipo.
+ *   - `fadeIn`: opacidad de entrada de la cabecera y el formulario.
+ */
 function useLoginAnimations() {
   const orb1X = useRef(new Animated.Value(0)).current;
   const orb1Y = useRef(new Animated.Value(0)).current;
@@ -79,6 +90,14 @@ function useLoginAnimations() {
   return { orb1X, orb1Y, orb2X, orb2Y, pulse, fadeIn };
 }
 
+/**
+ * Pantalla de inicio de sesión de la aplicación.
+ * Muestra el formulario de login con animaciones de fondo y un modal de
+ * recuperación de contraseña en tres pasos (correo, código, nueva contraseña).
+ *
+ * @param props.navigation - Objeto de navegación del stack de autenticación.
+ * @returns Vista de login con formulario, enlace a registro y modal de recuperación.
+ */
 export default function LoginScreen({ navigation }: Props) {
   const { signIn } = useAuth();
   const login = useLoginForm(signIn);
@@ -86,7 +105,7 @@ export default function LoginScreen({ navigation }: Props) {
   const { orb1X, orb1Y, orb2X, orb2Y, pulse, fadeIn } = useLoginAnimations();
 
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <Animated.View
         style={[styles.orb, styles.orb1, { transform: [{ translateX: orb1X }, { translateY: orb1Y }] }]}
         pointerEvents="none"
@@ -162,7 +181,10 @@ export default function LoginScreen({ navigation }: Props) {
         animationType="fade"
         onRequestClose={forgot.close}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Recuperar contraseña</Text>
 
@@ -262,7 +284,7 @@ export default function LoginScreen({ navigation }: Props) {
               </>
             )}
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </KeyboardAvoidingView>
   );

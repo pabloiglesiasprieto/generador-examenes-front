@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import 'react-native-gesture-handler';
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
@@ -16,13 +16,18 @@ import RootNavigator from './src/presentation/navigation/RootNavigator';
 // cuando el teclado sube o baja.
 SystemUI.setBackgroundColorAsync('#0D0D1A');
 
+const NAV_THEME = {
+  ...DarkTheme,
+  colors: { ...DarkTheme.colors, background: '#0D0D1A' },
+};
+
 export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <AlertProvider>
           <AuthProvider>
-            <NavigationContainer>
+            <NavigationContainer theme={NAV_THEME}>
               <StatusBar style="light" backgroundColor="#0D0D1A" />
               <RootNavigator />
             </NavigationContainer>
@@ -35,5 +40,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: '#0D0D1A' },
 });

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -104,7 +104,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const [submitModalVisible, setSubmitModalVisible] = useState(false);
   const [quitModalVisible, setQuitModalVisible] = useState(false);
 
-  const iniciarExamenUseCase = container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase);
+  const iniciarExamenUseCase = useMemo(() => container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase), []);
   const autoSubmittedRef = useRef(false);
 
   // Registrar inicio en backend (solo para alumnos, para calcular tiempo_segundos)

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -71,12 +71,12 @@ export default function MapScreen({ navigation }: Props) {
   const [loadError, setLoadError] = useState(false);
   const [nombreCompleto, setNombreCompleto] = useState<string | null>(null);
 
-  const getExamenesUseCase = container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase);
-  const createExamenUseCase = container.get<ICreateExamenUseCase>(TYPES.ICreateExamenUseCase);
-  const deleteExamenUseCase = container.get<IDeleteExamenUseCase>(TYPES.IDeleteExamenUseCase);
-  const getResultadosAlumnoUseCase = container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase);
-  const getCategoriasUseCase = container.get<IGetCategoriasUseCase>(TYPES.IGetCategoriasUseCase);
-  const getUsuarioByIdUseCase = container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase);
+  const getExamenesUseCase = useMemo(() => container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase), []);
+  const createExamenUseCase = useMemo(() => container.get<ICreateExamenUseCase>(TYPES.ICreateExamenUseCase), []);
+  const deleteExamenUseCase = useMemo(() => container.get<IDeleteExamenUseCase>(TYPES.IDeleteExamenUseCase), []);
+  const getResultadosAlumnoUseCase = useMemo(() => container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase), []);
+  const getCategoriasUseCase = useMemo(() => container.get<IGetCategoriasUseCase>(TYPES.IGetCategoriasUseCase), []);
+  const getUsuarioByIdUseCase = useMemo(() => container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase), []);
 
   useEffect(() => {
     if (!user) return;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -50,10 +50,10 @@ export default function ProfileScreen({ navigation }: Props) {
   const [editApellido, setEditApellido] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const getUsuarioByIdUseCase = container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase);
-  const getResultadosAlumnoUseCase = container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase);
-  const updateUsuarioUseCase = container.get<IUpdateUsuarioUseCase>(TYPES.IUpdateUsuarioUseCase);
-  const exportExamenesUseCase = container.get<IExportExamenesUseCase>(TYPES.IExportExamenesUseCase);
+  const getUsuarioByIdUseCase = useMemo(() => container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase), []);
+  const getResultadosAlumnoUseCase = useMemo(() => container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase), []);
+  const updateUsuarioUseCase = useMemo(() => container.get<IUpdateUsuarioUseCase>(TYPES.IUpdateUsuarioUseCase), []);
+  const exportExamenesUseCase = useMemo(() => container.get<IExportExamenesUseCase>(TYPES.IExportExamenesUseCase), []);
 
   useFocusEffect(
     useCallback(() => {
@@ -124,7 +124,7 @@ export default function ProfileScreen({ navigation }: Props) {
       setUsuario(updated);
       setShowEditModal(false);
     } catch {
-      // silently keep modal open
+      showAlert('Error', 'No se pudo guardar el perfil. Inténtalo de nuevo.');
     } finally {
       setSaving(false);
     }

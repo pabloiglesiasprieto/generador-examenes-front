@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -41,7 +41,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [showPass, setShowPass] = useState(false);
   const { showAlert } = useAlert();
 
-  const registerUseCase = container.get<IRegisterUseCase>(TYPES.IRegisterUseCase);
+  const registerUseCase = useMemo(() => container.get<IRegisterUseCase>(TYPES.IRegisterUseCase), []);
 
   const set = (key: keyof typeof form) => (value: string) =>
     setForm((prev) => ({ ...prev, [key]: value }));

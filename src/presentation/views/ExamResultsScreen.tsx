@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -47,8 +47,9 @@ export default function ExamResultsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const getResultadosUseCase = container.get<IGetResultadosExamenUseCase>(
-    TYPES.IGetResultadosExamenUseCase,
+  const getResultadosUseCase = useMemo(
+    () => container.get<IGetResultadosExamenUseCase>(TYPES.IGetResultadosExamenUseCase),
+    [],
   );
 
   useEffect(() => {

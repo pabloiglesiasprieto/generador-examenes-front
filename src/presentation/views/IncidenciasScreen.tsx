@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -46,8 +46,8 @@ export default function IncidenciasScreen() {
   const [filterClase, setFilterClase] = useState('');
   const [filtering, setFiltering] = useState(false);
 
-  const getAllIncidenciasUseCase = container.get<IGetAllIncidenciasUseCase>(TYPES.IGetAllIncidenciasUseCase);
-  const getIncidenciasByClaseUseCase = container.get<IGetIncidenciasByClaseUseCase>(TYPES.IGetIncidenciasByClaseUseCase);
+  const getAllIncidenciasUseCase = useMemo(() => container.get<IGetAllIncidenciasUseCase>(TYPES.IGetAllIncidenciasUseCase), []);
+  const getIncidenciasByClaseUseCase = useMemo(() => container.get<IGetIncidenciasByClaseUseCase>(TYPES.IGetIncidenciasByClaseUseCase), []);
 
   const loadAll = useCallback(async () => {
     try {

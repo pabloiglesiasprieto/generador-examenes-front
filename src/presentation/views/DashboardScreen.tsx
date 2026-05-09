@@ -11,6 +11,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useDashboardScreen, AlumnoRankingItem } from '../viewmodels/useDashboardScreen';
 import { EstadisticaExamenDTO, EstadisticaPreguntaDTO } from '../../domain/entities/Estadistica';
+import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'Dashboard'>;
 
@@ -218,7 +219,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D1A' },
-  body: { padding: 20, paddingTop: 56, paddingBottom: 40, gap: 24 },
+  body: { padding: 20, paddingTop: HEADER_TOP, paddingBottom: 40, gap: 24 },
   center: { flex: 1, backgroundColor: '#0D0D1A', justifyContent: 'center', alignItems: 'center', padding: 40 },
   loadingText: { color: '#94A3B8', marginTop: 12, fontSize: 14 },
   errorText: { color: '#EF4444', fontSize: 15, textAlign: 'center', marginBottom: 16 },

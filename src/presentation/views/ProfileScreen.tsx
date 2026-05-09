@@ -25,6 +25,7 @@ import { IGetResultadosAlumnoUseCase, IExportExamenesUseCase } from '../../domai
 import { ResultadoDTO } from '../../domain/entities/Examen';
 import { useAlert } from '../viewmodels/AlertContext';
 import { UsuarioDTO } from '../../domain/entities/Usuario';
+import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
@@ -399,7 +400,7 @@ const styles = StyleSheet.create({
   // Header con fondo semi-oscuro y orbe
   headerBg: {
     backgroundColor: '#111128',
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 24,
     paddingHorizontal: 24,
     borderBottomWidth: 1,

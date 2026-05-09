@@ -348,7 +348,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40, paddingHorizontal: 16,
   },
   webCard: {
-    width: 1100,
+    width: '100%',
+    maxWidth: 440,
   },
 
   // Logo

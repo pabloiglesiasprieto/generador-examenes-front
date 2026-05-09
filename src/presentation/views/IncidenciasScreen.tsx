@@ -21,6 +21,7 @@ import {
 } from '../../domain/interfaces/useCases/incidencias/IIncidenciaUseCase';
 import { IncidenciaDTO } from '../../domain/entities/Incidencia';
 import { useAlert } from '../viewmodels/AlertContext';
+import { HEADER_TOP } from '../utils/responsive';
 
 const TYPE_COLORS: Record<string, string> = {
   ERROR: '#EF4444',
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'column',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
@@ -288,7 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',

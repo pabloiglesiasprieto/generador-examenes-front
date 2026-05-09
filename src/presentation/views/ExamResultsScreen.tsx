@@ -14,6 +14,7 @@ import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IGetResultadosExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { ResultadoDTO } from '../../domain/entities/Examen';
+import { HEADER_TOP } from '../utils/responsive';
 
 type ExamResultsRoute = RouteProp<AdminStackParamList, 'ExamResults'>;
 type ExamResultsNav = NativeStackNavigationProp<AdminStackParamList, 'ExamResults'>;
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D1A' },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     backgroundColor: '#1A1A2E',
     borderBottomWidth: 1,

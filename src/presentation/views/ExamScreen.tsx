@@ -16,6 +16,7 @@ import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IIniciarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
 import { useAlert } from '../viewmodels/AlertContext';
+import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Exam'>;
 
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
   },
   quitText: { color: '#EF4444', fontSize: 14, fontWeight: '600' },

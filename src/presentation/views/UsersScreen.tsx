@@ -15,6 +15,7 @@ import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
 import { useUsersScreen, TabUsuarios } from '../viewmodels/useUsersScreen';
 import { UsuarioDTO, RolDTO } from '../../domain/entities/Usuario';
+import { HEADER_TOP } from '../utils/responsive';
 
 function UserCard({
   item,
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'column',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',

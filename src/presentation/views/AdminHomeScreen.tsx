@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from '
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
+import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<AdminStackParamList, 'AdminHome'>;
 
@@ -156,7 +157,7 @@ export default function AdminHomeScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0D1A' },
-  body: { padding: 24, paddingTop: 60, paddingBottom: 40 },
+  body: { padding: 24, paddingTop: HEADER_TOP, paddingBottom: 40 },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

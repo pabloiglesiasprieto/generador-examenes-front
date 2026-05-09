@@ -22,6 +22,7 @@ import { IGetExamenesUseCase, ICreateExamenUseCase, IDeleteExamenUseCase, IGetRe
 import { IGetUsuarioByIdUseCase } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { ExamenDTO, ExamNodeInfo } from '../../domain/entities/Examen';
 import ExamNode from '../components/ExamNode';
+import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<GameStackParamList, 'Map'>;
 
@@ -508,7 +509,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     backgroundColor: '#1A1A2E',
     borderBottomWidth: 1,

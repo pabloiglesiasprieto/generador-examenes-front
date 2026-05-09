@@ -16,6 +16,7 @@ import { useAuth } from '../viewmodels/AuthContext';
 import { useHistoryScreen } from '../viewmodels/useHistoryScreen';
 import { getStars, getNotaColor, getGradeLabel } from '../utils/gradeUtils';
 import { ResultadoDTO } from '../../domain/entities/Examen';
+import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'History'>;
 
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
@@ -434,7 +435,7 @@ const modalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingTop: 56,
+    paddingTop: HEADER_TOP,
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',

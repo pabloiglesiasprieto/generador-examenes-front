@@ -130,7 +130,7 @@ export function useUsersScreen(currentUserId: number | undefined) {
         text: 'Activar',
         onPress: async () => {
           try {
-            await activarUsuarioUseCase.execute(u.id_usuario);
+            await activarUsuarioUseCase.execute(u.id_usuario, u);
             await loadUsuarios();
           } catch {
             showAlert('Error', 'No se pudo activar el usuario');

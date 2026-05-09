@@ -32,8 +32,13 @@ export class UsuarioRepository implements IUsuarioRepository {
     return apiClient.get<UsuarioDTO[]>('/usuarios?incluirInactivos=true').then((r) => r.data);
   }
 
-  activarUsuario(id: number): Promise<UsuarioDTO> {
-    return apiClient.put<UsuarioDTO>(`/usuarios/${id}`, { activo: true }).then((r) => r.data);
+  activarUsuario(id: number, usuario: UsuarioDTO): Promise<UsuarioDTO> {
+    return apiClient.put<UsuarioDTO>(`/usuarios/${id}`, {
+      nombre_usuario: usuario.nombre_usuario,
+      apellido_usuario: usuario.apellido_usuario,
+      correo_usuario: usuario.correo_usuario,
+      activo: true,
+    }).then((r) => r.data);
   }
 
   /**

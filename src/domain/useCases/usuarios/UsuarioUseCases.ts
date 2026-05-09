@@ -70,8 +70,8 @@ export class GetAllUsuariosConInactivosUseCase implements IGetAllUsuariosConInac
 export class ActivarUsuarioUseCase implements IActivarUsuarioUseCase {
   constructor(@inject(TYPES.IUsuarioRepository) private usuarioRepository: IUsuarioRepository) {}
 
-  execute(id: number): Promise<UsuarioDTO> {
-    return this.usuarioRepository.activarUsuario(id);
+  execute(id: number, usuario: UsuarioDTO): Promise<UsuarioDTO> {
+    return this.usuarioRepository.activarUsuario(id, usuario);
   }
 }
 

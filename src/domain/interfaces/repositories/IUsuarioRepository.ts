@@ -21,7 +21,7 @@ export interface IUsuarioRepository {
 
   getAllUsuariosConInactivos(): Promise<UsuarioDTO[]>;
 
-  activarUsuario(id: number): Promise<UsuarioDTO>;
+  activarUsuario(id: number, usuario: UsuarioDTO): Promise<UsuarioDTO>;
 
   /**
    * Obtiene los datos de un usuario por su identificador.

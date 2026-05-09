@@ -78,7 +78,7 @@ export interface IGetAllUsuariosConInactivosUseCase {
  * Contrato del caso de uso para activar un usuario desactivado.
  */
 export interface IActivarUsuarioUseCase {
-  execute(id: number): Promise<UsuarioDTO>;
+  execute(id: number, usuario: UsuarioDTO): Promise<UsuarioDTO>;
 }
 
 /**

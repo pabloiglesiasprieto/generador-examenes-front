@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 24,
     width: '100%',
+    maxWidth: 420,
     borderWidth: 1,
     borderColor: '#2D2D44',
   },

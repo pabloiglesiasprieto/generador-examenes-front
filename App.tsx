@@ -4,7 +4,7 @@ import React from 'react';
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SystemUI from 'expo-system-ui';
 import { AuthProvider } from './src/presentation/viewmodels/AuthContext';
@@ -21,37 +21,17 @@ const NAV_THEME = {
   colors: { ...DarkTheme.colors, background: '#0D0D1A' },
 };
 
-const WEB_MAX_WIDTH = 480;
-
-function AppContent() {
-  const { width } = useWindowDimensions();
-  const isWeb = Platform.OS === 'web';
-  const isWideWeb = isWeb && width > WEB_MAX_WIDTH;
-
+export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <AlertProvider>
           <AuthProvider>
-            {isWideWeb ? (
-              <View style={styles.webOuter}>
-                <View style={[styles.webInner, { width: WEB_MAX_WIDTH }]}>
-                  <NavigationContainer theme={NAV_THEME}>
-                    <StatusBar style="light" backgroundColor="#0D0D1A" />
-                    <RootNavigator />
-                  </NavigationContainer>
-                  <AppAlertModal />
-                </View>
-              </View>
-            ) : (
-              <>
-                <NavigationContainer theme={NAV_THEME}>
-                  <StatusBar style="light" backgroundColor="#0D0D1A" />
-                  <RootNavigator />
-                </NavigationContainer>
-                <AppAlertModal />
-              </>
-            )}
+            <NavigationContainer theme={NAV_THEME}>
+              <StatusBar style="light" backgroundColor="#0D0D1A" />
+              <RootNavigator />
+            </NavigationContainer>
+            <AppAlertModal />
           </AuthProvider>
         </AlertProvider>
       </SafeAreaProvider>
@@ -59,21 +39,6 @@ function AppContent() {
   );
 }
 
-export default function App() {
-  return <AppContent />;
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0D0D1A' },
-  webOuter: {
-    flex: 1,
-    backgroundColor: '#07070F',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  webInner: {
-    flex: 1,
-    backgroundColor: '#0D0D1A',
-    overflow: 'hidden',
-  },
 });

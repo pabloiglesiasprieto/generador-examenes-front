@@ -11,6 +11,7 @@ import {
   Modal,
   Animated,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../navigation/RootNavigator';
@@ -62,6 +63,8 @@ export default function LoginScreen({ navigation }: Props) {
   const login = useLoginForm(signIn);
   const forgot = useForgotPassword();
   const items = useLoginAnimations();
+  const { width } = useWindowDimensions();
+  const isDesktopWeb = isWeb && width > 768;
 
   const anim = (i: number, children: React.ReactNode) => (
     <Animated.View style={{ opacity: items[i].opacity, transform: [{ translateY: items[i].translateY }] }}>
@@ -276,8 +279,8 @@ export default function LoginScreen({ navigation }: Props) {
     </Modal>
   );
 
-  // ── Web: tarjeta centrada ────────────────────────────────────────────────────
-  if (isWeb) {
+  // ── Web desktop: tarjeta centrada ───────────────────────────────────────────
+  if (isDesktopWeb) {
     return (
       <View style={styles.root}>
         <View style={styles.orb1} pointerEvents="none" />

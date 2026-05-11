@@ -2,6 +2,8 @@
 
 Aplicación móvil multiplataforma construida con **React Native**, **Expo** y **TypeScript**. Se conecta al backend de microservicios a través del Gateway (puerto 8080).
 
+> La versión web está desplegada en **Vercel**: [https://generador-examenes-front.vercel.app/](https://generador-examenes-front.vercel.app/)
+
 ---
 
 ## Tecnologías principales

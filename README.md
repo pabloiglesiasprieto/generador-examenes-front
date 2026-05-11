@@ -1,6 +1,6 @@
 # Generador de Exámenes — Frontend
 
-Aplicación móvil multiplataforma construida con **React Native**, **Expo** y **TypeScript**. Se conecta al backend de microservicios a través del Gateway (puerto 8080).
+Aplicación móvil multiplataforma construida con **React Native**, **Expo** y **TypeScript**. Se conecta al backend de microservicios desplegado en una **máquina virtual de Azure** a través del API Gateway.
 
 > La versión web está desplegada en **Vercel**: [https://generador-examenes-front.vercel.app/](https://generador-examenes-front.vercel.app/)
 
@@ -31,7 +31,7 @@ Aplicación móvil multiplataforma construida con **React Native**, **Expo** y *
 | Expo CLI           | (`npx expo`)   |
 | Android Studio / Xcode | (para emulador) |
 
-El **backend debe estar en marcha** y accesible desde el dispositivo/emulador antes de arrancar la app.
+Para ejecutar la app en producción no es necesario levantar el backend localmente, ya que apunta a la VM de Azure. Para desarrollo local, el **backend debe estar en marcha** y accesible desde el dispositivo/emulador.
 
 ---
 
@@ -50,21 +50,24 @@ npm install
 La URL base de la API se define en:
 
 ```
-src/data/apiconnection/ApiClient.ts
+src/data/apiconnection/apiClient.ts
 ```
+
+Actualmente apunta al backend desplegado en la VM de Azure:
 
 ```typescript
-export const API_BASE_URL = 'http://localhost:8080';
+export const API_BASE_URL = 'https://generador-examenes.francecentral.cloudapp.azure.com';
 ```
 
-Cambia esta URL según el entorno:
+Para desarrollo local, cambia esta constante según el entorno:
 
-| Entorno                    | URL de ejemplo                        |
-|----------------------------|---------------------------------------|
-| Emulador Android           | `http://10.0.2.2:8080`                |
-| Dispositivo físico (LAN)   | `http://192.168.x.x:8080`             |
-| LocalTunnel / ngrok        | `https://xxxxx.loca.lt`               |
-| Backend en Docker local    | `http://localhost:8080`               |
+| Entorno                    | URL de ejemplo                                                              |
+|----------------------------|-----------------------------------------------------------------------------|
+| VM de Azure (producción)   | `https://generador-examenes.francecentral.cloudapp.azure.com`               |
+| Emulador Android           | `http://10.0.2.2:8080`                                                      |
+| Dispositivo físico (LAN)   | `http://192.168.x.x:8080`                                                   |
+| LocalTunnel / ngrok        | `https://xxxxx.loca.lt`                                                     |
+| Backend en Docker local    | `http://localhost:8080`                                                      |
 
 > Si usas localtunnel, el cliente ya envía la cabecera `bypass-tunnel-reminder: true` automáticamente.
 

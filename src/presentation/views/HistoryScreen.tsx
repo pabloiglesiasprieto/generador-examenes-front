@@ -28,32 +28,48 @@ function HorizontalScroll({
   contentContainerStyle,
   children,
 }: Readonly<{ style?: StyleProp<ViewStyle>; contentContainerStyle?: StyleProp<ViewStyle>; children: React.ReactNode }>) {
+  const wrapperRef = useRef<View>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (Platform.OS !== 'web') return;
-    const node = (scrollRef.current as any)?.getScrollableNode?.() as HTMLElement | null;
-    if (!node) return;
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        e.preventDefault();
-        node.scrollLeft += e.deltaY;
+    const wrapper = wrapperRef.current as unknown as HTMLElement | null;
+    if (!wrapper) return;
+
+    let cachedEl: HTMLElement | null = null;
+    const getScrollable = (): HTMLElement | null => {
+      if (cachedEl) return cachedEl;
+      cachedEl = (scrollRef.current as any)?.getScrollableNode?.() ?? null;
+      if (!cachedEl) {
+        cachedEl = Array.from(wrapper.querySelectorAll<HTMLElement>('*'))
+          .find(el => el.scrollWidth > el.clientWidth) ?? null;
       }
+      return cachedEl;
     };
-    node.addEventListener('wheel', onWheel, { passive: false });
-    return () => node.removeEventListener('wheel', onWheel);
+
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const el = getScrollable();
+      if (!el) return;
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    };
+
+    wrapper.addEventListener('wheel', onWheel, { passive: false });
+    return () => wrapper.removeEventListener('wheel', onWheel);
   }, []);
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={style}
-      contentContainerStyle={contentContainerStyle}
-    >
-      {children}
-    </ScrollView>
+    <View ref={wrapperRef} style={style}>
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={contentContainerStyle}
+      >
+        {children}
+      </ScrollView>
+    </View>
   );
 }
 

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -44,15 +44,15 @@ function ExamFooterButton({
 }>) {
   if (isAdminMode) {
     return (
-      <TouchableOpacity style={[styles.btn, styles.btnClose]} onPress={onClose}>
+      <Pressable style={[styles.btn, styles.btnClose]} onPress={onClose}>
         <Text style={styles.btnText}>{session.isLast ? 'Cerrar' : 'Siguiente →'}</Text>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
   if (session.isLast) {
     return (
-      <TouchableOpacity
+      <Pressable
         style={[styles.btn, styles.btnSubmit, session.submitting && styles.btnDisabled]}
         onPress={onSubmit}
         disabled={session.submitting}
@@ -62,17 +62,17 @@ function ExamFooterButton({
         ) : (
           <Text style={styles.btnText}>Enviar examen 🚀</Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
   return (
-    <TouchableOpacity
+    <Pressable
       style={[styles.btn, !session.hasAnswered && styles.btnMuted]}
       onPress={session.goNext}
     >
       <Text style={styles.btnText}>Siguiente →</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -162,17 +162,17 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
       {!session.currentPregunta && (
         <View style={styles.center}>
           <Text style={styles.errorText}>Este examen no tiene preguntas</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Text style={styles.backBtnText}>Volver</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
       {session.currentPregunta && (
         <>
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleQuit}>
+            <Pressable onPress={handleQuit}>
               <Text style={styles.quitText}>{isAdminMode ? '← Volver' : '✕ Salir'}</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.counter}>
               {session.currentIndex + 1} / {session.totalPreguntas}
             </Text>
@@ -211,7 +211,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
                 const isWrong = isAdminMode && respId != null && !(session.currentPregunta.respuestas_correctas?.includes(respId) ?? false);
 
                 return (
-                  <TouchableOpacity
+                  <Pressable
                     key={`${session.currentIndex}-resp-${respId ?? i}`}
                     style={[
                       styles.answerCard,
@@ -220,7 +220,6 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
                       isWrong && styles.answerCardWrong,
                     ]}
                     onPress={() => session.toggleAnswer(i)}
-                    activeOpacity={isAdminMode ? 1 : 0.75}
                   >
                     <View
                       style={[
@@ -244,7 +243,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
                     >
                       {resp.texto}
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 );
               })}
             </View>
@@ -278,18 +277,18 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
               Perderás todo tu progreso.{'\n'}¿Estás seguro de que quieres salir?
             </Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.modalCancelBtn}
                 onPress={() => setQuitModalVisible(false)}
               >
                 <Text style={styles.modalCancelText}>Continuar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalConfirmBtn, { backgroundColor: '#EF4444', shadowColor: '#EF4444' }]}
+              </Pressable>
+              <Pressable
+                style={[styles.modalConfirmBtn, { backgroundColor: '#EF4444', boxShadow: '0 2px 8px rgba(239,68,68,0.4)' }]}
                 onPress={() => { setQuitModalVisible(false); navigation.goBack(); }}
               >
                 <Text style={styles.modalConfirmText}>Salir</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -313,13 +312,13 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
               Esta acción no se puede deshacer.
             </Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.modalCancelBtn}
                 onPress={() => setSubmitModalVisible(false)}
               >
                 <Text style={styles.modalCancelText}>Revisar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Pressable>
+              <Pressable
                 style={[styles.modalConfirmBtn, session.submitting && styles.btnDisabled]}
                 onPress={handleConfirmSubmit}
                 disabled={session.submitting}
@@ -329,7 +328,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
                 ) : (
                   <Text style={styles.modalConfirmText}>Enviar</Text>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -428,14 +427,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
-  btnMuted: { backgroundColor: '#2D2D44', shadowOpacity: 0 },
-  btnSubmit: { backgroundColor: '#10B981', shadowColor: '#10B981' },
-  btnClose: { backgroundColor: '#3B82F6', shadowColor: '#3B82F6' },
+  btnMuted: { backgroundColor: '#2D2D44', boxShadow: 'none' },
+  btnSubmit: { backgroundColor: '#10B981', boxShadow: '0 2px 8px rgba(16,185,129,0.5)' },
+  btnClose: { backgroundColor: '#3B82F6', boxShadow: '0 2px 8px rgba(59,130,246,0.5)' },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
   backBtn: {
@@ -462,10 +458,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#2D2D44',
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 12,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   modalIconCircle: {
     width: 64,
@@ -509,10 +502,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#10B981',
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    boxShadow: '0 2px 8px rgba(16,185,129,0.4)',
   },
   modalConfirmText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

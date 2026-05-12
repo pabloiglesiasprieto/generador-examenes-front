@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
@@ -86,9 +86,9 @@ export default function RegisterScreen({ navigation }: Props) {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         {/* Header */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backText}>← Volver</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={styles.titleRow}>
           <Text style={styles.title}>Crear cuenta</Text>
@@ -133,9 +133,9 @@ export default function RegisterScreen({ navigation }: Props) {
                 onChangeText={set('password')}
                 secureTextEntry={!showPass}
               />
-              <TouchableOpacity onPress={() => setShowPass((v) => !v)} style={styles.eyeBtn}>
+              <Pressable onPress={() => setShowPass((v) => !v)} style={styles.eyeBtn}>
                 <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
@@ -151,7 +151,7 @@ export default function RegisterScreen({ navigation }: Props) {
             />
           </View>
 
-          <TouchableOpacity
+          <Pressable
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleRegister}
             disabled={loading}
@@ -161,7 +161,7 @@ export default function RegisterScreen({ navigation }: Props) {
             ) : (
               <Text style={styles.btnText}>Crear cuenta</Text>
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -208,17 +208,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 13,
     justifyContent: 'center',
-  },
-  eyeBtn: {
-    backgroundColor: '#0D0D1A',
-    borderWidth: 1,
-    borderLeftWidth: 0,
-    borderColor: '#2D2D44',
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    justifyContent: 'center',
     alignItems: 'center',
   },
   btn: {
@@ -227,10 +216,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },

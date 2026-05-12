@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Modal,
   ScrollView,
@@ -29,7 +29,7 @@ function UserCard({
   accion: 'desactivar' | 'activar';
 }>) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.avatarCircle}>
         <Text style={styles.avatarText}>
           {(item.nombre_usuario ?? '?')[0].toUpperCase()}
@@ -41,13 +41,13 @@ function UserCard({
         </Text>
         <Text style={styles.userEmail}>{item.correo_usuario}</Text>
       </View>
-      <TouchableOpacity
+      <Pressable
         onPress={onToggleActivo}
         style={[styles.toggleBtn, accion === 'desactivar' ? styles.toggleBtnOff : styles.toggleBtnOn]}
       >
         <Text style={styles.toggleBtnText}>{accion === 'desactivar' ? 'Desactivar' : 'Activar'}</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </Pressable>
+    </Pressable>
   );
 }
 
@@ -57,7 +57,7 @@ function RolRow({
   onToggle,
 }: Readonly<{ rol: RolDTO; active: boolean; onToggle: () => void }>) {
   return (
-    <TouchableOpacity
+    <Pressable
       style={[styles.rolRow, active && styles.rolRowActive]}
       onPress={onToggle}
     >
@@ -65,7 +65,7 @@ function RolRow({
         {active && <Text style={styles.rolCheckText}>✓</Text>}
       </View>
       <Text style={[styles.rolName, active && styles.rolNameActive]}>{rol.nombre_rol}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -82,7 +82,7 @@ function TabBar({
 }>) {
   return (
     <View style={styles.tabBar}>
-      <TouchableOpacity
+      <Pressable
         style={[styles.tab, tabActiva === 'activos' && styles.tabActive]}
         onPress={() => onChangeTab('activos')}
       >
@@ -92,8 +92,8 @@ function TabBar({
         <View style={[styles.tabBadge, tabActiva === 'activos' ? styles.tabBadgeActive : styles.tabBadgeInactive]}>
           <Text style={styles.tabBadgeText}>{countActivos}</Text>
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
+      </Pressable>
+      <Pressable
         style={[styles.tab, tabActiva === 'inactivos' && styles.tabActive]}
         onPress={() => onChangeTab('inactivos')}
       >
@@ -103,13 +103,13 @@ function TabBar({
         <View style={[styles.tabBadge, tabActiva === 'inactivos' ? styles.tabBadgeActive : styles.tabBadgeInactive]}>
           <Text style={styles.tabBadgeText}>{countInactivos}</Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
 
 export default function UsersScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
+  const { goBack } = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const { user: me } = useAuth();
   const {
     usuariosActivos,
@@ -131,6 +131,27 @@ export default function UsersScreen() {
 
   const listaVisible = tabActiva === 'activos' ? usuariosActivos : usuariosInactivos;
 
+  const handleItemPress = useCallback((item: UsuarioDTO) => {
+    if (tabActiva === 'activos') openUserDetail(item);
+  }, [tabActiva, openUserDetail]);
+
+  const handleToggleActivo = useCallback((item: UsuarioDTO) => {
+    if (tabActiva === 'activos') {
+      handleDesactivar(item);
+    } else {
+      handleActivar(item);
+    }
+  }, [tabActiva, handleDesactivar, handleActivar]);
+
+  const renderItem = useCallback(({ item }: { item: UsuarioDTO }) => (
+    <UserCard
+      item={item}
+      onPress={() => handleItemPress(item)}
+      onToggleActivo={() => handleToggleActivo(item)}
+      accion={tabActiva === 'activos' ? 'desactivar' : 'activar'}
+    />
+  ), [tabActiva, handleItemPress, handleToggleActivo]);
+
   return (
     <View style={styles.container}>
       {loading && (
@@ -142,9 +163,9 @@ export default function UsersScreen() {
       {!loading && (
         <>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Pressable onPress={goBack} style={styles.backBtn}>
               <Text style={styles.backBtnText}>← Volver</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.headerTitle}>Usuarios</Text>
           </View>
 
@@ -164,16 +185,7 @@ export default function UsersScreen() {
                 No hay usuarios {tabActiva === 'activos' ? 'activos' : 'inactivos'}
               </Text>
             }
-            renderItem={({ item }) => (
-              <UserCard
-                item={item}
-                onPress={() => tabActiva === 'activos' ? openUserDetail(item) : undefined}
-                onToggleActivo={() =>
-                  tabActiva === 'activos' ? handleDesactivar(item) : handleActivar(item)
-                }
-                accion={tabActiva === 'activos' ? 'desactivar' : 'activar'}
-              />
-            )}
+            renderItem={renderItem}
           />
 
           <Modal
@@ -186,9 +198,9 @@ export default function UsersScreen() {
                 <Text style={styles.modalTitle}>
                   {selectedUser?.nombre_usuario} {selectedUser?.apellido_usuario}
                 </Text>
-                <TouchableOpacity onPress={closeModal}>
+                <Pressable onPress={closeModal}>
                   <Text style={styles.modalClose}>✕</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
               <ScrollView contentContainerStyle={styles.modalBody}>
                 <Text style={styles.modalEmail}>{selectedUser?.correo_usuario}</Text>

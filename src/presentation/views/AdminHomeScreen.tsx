@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Animated } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
@@ -84,11 +84,10 @@ function AdminCard({
     Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40 }).start();
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
-      activeOpacity={1}
     >
       <Animated.View style={[styles.card, { borderColor: opt.color + '66', transform: [{ scale }] }]}>
         {/* Orbe de color en esquina */}
@@ -113,7 +112,7 @@ function AdminCard({
           </View>
         </View>
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -143,13 +142,18 @@ export default function AdminHomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.grid}>
-        {OPTIONS.filter((opt) => !opt.adminOnly || isAdmin).map((opt) => (
-          <AdminCard
-            key={opt.key}
-            opt={opt}
-            onPress={() => navigation.navigate(opt.key as never)}
-          />
-        ))}
+        {OPTIONS.reduce<React.ReactElement[]>((acc, opt) => {
+          if (!opt.adminOnly || isAdmin) {
+            acc.push(
+              <AdminCard
+                key={opt.key}
+                opt={opt}
+                onPress={() => navigation.navigate(opt.key as never)}
+              />
+            );
+          }
+          return acc;
+        }, [])}
       </View>
     </ScrollView>
   );

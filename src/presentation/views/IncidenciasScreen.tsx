@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Modal,
   ScrollView,
@@ -39,13 +39,17 @@ const TYPE_COLORS: Record<string, string> = {
  */
 export default function IncidenciasScreen() {
   const { showAlert } = useAlert();
-  const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
+  const { goBack } = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const [incidencias, setIncidencias] = useState<IncidenciaDTO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(false);
+  const [loadingVisible, setLoadingVisible] = useState(true);
   const [selected, setSelected] = useState<IncidenciaDTO | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [filterClase, setFilterClase] = useState('');
   const [filtering, setFiltering] = useState(false);
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => { setNow(new Date()); }, []);
 
   const getAllIncidenciasUseCase = useMemo(() => container.get<IGetAllIncidenciasUseCase>(TYPES.IGetAllIncidenciasUseCase), []);
   const getIncidenciasByClaseUseCase = useMemo(() => container.get<IGetIncidenciasByClaseUseCase>(TYPES.IGetIncidenciasByClaseUseCase), []);
@@ -57,13 +61,15 @@ export default function IncidenciasScreen() {
     } catch {
       showAlert('Error', 'No se pudieron cargar las incidencias');
     } finally {
-      setLoading(false);
+      loadingRef.current = false;
+      setLoadingVisible(false);
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
+      loadingRef.current = true;
+      setLoadingVisible(true);
       setFilterClase('');
       loadAll();
     }, [loadAll]),
@@ -85,7 +91,40 @@ export default function IncidenciasScreen() {
     }
   };
 
-  if (loading) {
+  const handleItemPress = useCallback((item: IncidenciaDTO) => {
+    setSelected(item);
+    setModalVisible(true);
+  }, []);
+
+  const renderItem = useCallback(({ item }: { item: IncidenciaDTO }) => {
+    const typeColor = TYPE_COLORS[item.tipo?.toUpperCase()] ?? '#94A3B8';
+    return (
+      <Pressable
+        style={styles.card}
+        onPress={() => handleItemPress(item)}
+      >
+        <View style={[styles.typeBar, { backgroundColor: typeColor }]} />
+        <View style={styles.cardContent}>
+          <View style={styles.cardTop}>
+            <View style={[styles.typeBadge, { backgroundColor: typeColor + '22' }]}>
+              <Text style={[styles.typeText, { color: typeColor }]}>{item.tipo}</Text>
+            </View>
+            <Text style={styles.cardDate} numberOfLines={1}>
+              {item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES') : '—'}
+            </Text>
+          </View>
+          <Text style={styles.cardEndpoint} numberOfLines={1}>
+            {item.endpoint}
+          </Text>
+          <Text style={styles.cardClase} numberOfLines={1}>
+            {item.clase} · {item.metodo}
+          </Text>
+        </View>
+      </Pressable>
+    );
+  }, [handleItemPress, now]);
+
+  if (loadingVisible) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#7C3AED" />
@@ -96,9 +135,9 @@ export default function IncidenciasScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <Pressable onPress={goBack} style={styles.backBtn}>
           <Text style={styles.backBtnText}>← Volver</Text>
-        </TouchableOpacity>
+        </Pressable>
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Incidencias</Text>
           <Text style={styles.headerCount}>{incidencias.length}</Text>
@@ -114,7 +153,7 @@ export default function IncidenciasScreen() {
           onChangeText={setFilterClase}
           onSubmitEditing={handleFilterByClase}
         />
-        <TouchableOpacity
+        <Pressable
           style={styles.filterBtn}
           onPress={handleFilterByClase}
           disabled={filtering}
@@ -124,7 +163,7 @@ export default function IncidenciasScreen() {
           ) : (
             <Text style={styles.filterBtnText}>Buscar</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       <FlatList
@@ -136,36 +175,7 @@ export default function IncidenciasScreen() {
             <Text style={styles.emptyText}>No hay incidencias registradas</Text>
           </View>
         }
-        renderItem={({ item }) => {
-          const typeColor = TYPE_COLORS[item.tipo?.toUpperCase()] ?? '#94A3B8';
-          return (
-            <TouchableOpacity
-              style={styles.card}
-              onPress={() => {
-                setSelected(item);
-                setModalVisible(true);
-              }}
-            >
-              <View style={[styles.typeBar, { backgroundColor: typeColor }]} />
-              <View style={styles.cardContent}>
-                <View style={styles.cardTop}>
-                  <View style={[styles.typeBadge, { backgroundColor: typeColor + '22' }]}>
-                    <Text style={[styles.typeText, { color: typeColor }]}>{item.tipo}</Text>
-                  </View>
-                  <Text style={styles.cardDate} numberOfLines={1}>
-                    {item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES') : '—'}
-                  </Text>
-                </View>
-                <Text style={styles.cardEndpoint} numberOfLines={1}>
-                  {item.endpoint}
-                </Text>
-                <Text style={styles.cardClase} numberOfLines={1}>
-                  {item.clase} · {item.metodo}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={renderItem}
       />
 
       <Modal
@@ -176,9 +186,9 @@ export default function IncidenciasScreen() {
         <View style={styles.modal}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Detalle de incidencia</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Pressable onPress={() => setModalVisible(false)}>
               <Text style={styles.modalClose}>✕</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
           {selected && (
             <ScrollView contentContainerStyle={styles.modalBody}>

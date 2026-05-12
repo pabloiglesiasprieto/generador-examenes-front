@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Modal,
   TextInput,
@@ -233,9 +233,9 @@ export default function ProfileScreen({ navigation }: Props) {
                 : user?.email.split('@')[0]}
             </Text>
             {usuario && (
-              <TouchableOpacity onPress={openEdit} style={styles.editProfileBtn}>
+              <Pressable onPress={openEdit} style={styles.editProfileBtn}>
                 <Text style={styles.editProfileText}>✏️</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
           </View>
           <Text style={styles.email}>{usuario?.correo_usuario ?? user?.email}</Text>
@@ -294,7 +294,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       <View style={styles.actionsSection}>
         {isAlumno && (
-          <TouchableOpacity
+          <Pressable
             style={styles.actionBtn}
             onPress={() => navigation.navigate('History')}
           >
@@ -304,11 +304,11 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text style={styles.actionSub}>{resultados.length} intentos registrados</Text>
             </View>
             <Text style={styles.actionArrow}>→</Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
         {(isAdmin || isProfesor) && (
           <>
-            <TouchableOpacity
+            <Pressable
               style={styles.actionBtn}
               onPress={() => { void handleExport('pdf'); }}
             >
@@ -318,8 +318,8 @@ export default function ProfileScreen({ navigation }: Props) {
                 <Text style={styles.actionSub}>Descarga el informe de exámenes en PDF</Text>
               </View>
               <Text style={styles.actionArrow}>→</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               style={styles.actionBtn}
               onPress={() => { void handleExport('excel'); }}
             >
@@ -329,17 +329,17 @@ export default function ProfileScreen({ navigation }: Props) {
                 <Text style={styles.actionSub}>Descarga el informe de exámenes en Excel</Text>
               </View>
               <Text style={styles.actionArrow}>→</Text>
-            </TouchableOpacity>
+            </Pressable>
           </>
         )}
       </View>
 
-      <TouchableOpacity
+      <Pressable
         style={styles.logoutBtn}
         onPress={() => dispatch({ type: 'OPEN_LOGOUT' })}
       >
         <Text style={styles.logoutText}>Cerrar sesión</Text>
-      </TouchableOpacity>
+      </Pressable>
 
       <Modal
         visible={showEditModal}
@@ -374,13 +374,13 @@ export default function ProfileScreen({ navigation }: Props) {
               />
             </View>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.modalCancelBtn}
                 onPress={() => dispatch({ type: 'CLOSE_EDIT' })}
               >
                 <Text style={styles.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Pressable>
+              <Pressable
                 style={[styles.modalSaveBtn, saving && styles.modalSaveBtnDisabled]}
                 onPress={() => void handleSaveProfile()}
                 disabled={saving}
@@ -390,7 +390,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 ) : (
                   <Text style={styles.modalSaveText}>Guardar</Text>
                 )}
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -407,13 +407,13 @@ export default function ProfileScreen({ navigation }: Props) {
             <Text style={styles.modalTitle}>Cerrar sesión</Text>
             <Text style={styles.modalMessage}>¿Estás seguro?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.modalCancelBtn}
                 onPress={() => dispatch({ type: 'CLOSE_LOGOUT' })}
               >
                 <Text style={styles.modalCancelText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
+              </Pressable>
+              <Pressable
                 style={styles.modalConfirmBtn}
                 onPress={() => {
                   dispatch({ type: 'CLOSE_LOGOUT' });
@@ -421,7 +421,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 }}
               >
                 <Text style={styles.modalConfirmText}>Salir</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -471,9 +471,7 @@ const styles = StyleSheet.create({
     borderRadius: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 12,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.6)',
   },
   avatarText: { fontSize: 40, color: '#fff', fontWeight: '800' },
   name: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },

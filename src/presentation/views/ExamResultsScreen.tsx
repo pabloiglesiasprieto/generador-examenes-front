@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   ActivityIndicator,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -61,12 +61,42 @@ export default function ExamResultsScreen() {
       .finally(() => setLoading(false));
   }, [examenId]);
 
+  const renderItem = useCallback(({ item }: { item: ResultadoDTO }) => {
+    const nota = item.nota ?? null;
+    const notaColor =
+      nota == null
+        ? '#64748B'
+        : nota >= 9
+        ? '#10B981'
+        : nota >= 7
+        ? '#06B6D4'
+        : nota >= 5
+        ? '#F59E0B'
+        : '#EF4444';
+    return (
+      <View style={styles.row}>
+        <Text style={[styles.col, styles.colUsuario, styles.cellText]}>
+          #{item.usuario_id ?? '—'}{item.nombre_usuario ? ` · ${item.nombre_usuario}` : ''}
+        </Text>
+        <Text style={[styles.col, styles.colIntento, styles.cellText]}>
+          {item.intento}
+        </Text>
+        <Text style={[styles.col, styles.colNota, { color: notaColor, fontWeight: '700' }]}>
+          {nota != null ? nota.toFixed(1) : '—'}
+        </Text>
+        <Text style={[styles.col, styles.colTiempo, styles.cellText]}>
+          {formatTime(item.tiempo_segundos)}
+        </Text>
+      </View>
+    );
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
+        <Pressable onPress={goBack} style={styles.backBtn}>
           <Text style={styles.backText}>← Volver</Text>
-        </TouchableOpacity>
+        </Pressable>
         <Text style={styles.title}>Examen #{examenId}</Text>
         <Text style={styles.subtitle}>Resultados de alumnos</Text>
       </View>
@@ -96,35 +126,7 @@ export default function ExamResultsScreen() {
             data={results}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={{ paddingBottom: 40 }}
-            renderItem={({ item }) => {
-              const nota = item.nota ?? null;
-              const notaColor =
-                nota == null
-                  ? '#64748B'
-                  : nota >= 9
-                  ? '#10B981'
-                  : nota >= 7
-                  ? '#06B6D4'
-                  : nota >= 5
-                  ? '#F59E0B'
-                  : '#EF4444';
-              return (
-                <View style={styles.row}>
-                  <Text style={[styles.col, styles.colUsuario, styles.cellText]}>
-                    #{item.usuario_id ?? '—'}{item.nombre_usuario ? ` · ${item.nombre_usuario}` : ''}
-                  </Text>
-                  <Text style={[styles.col, styles.colIntento, styles.cellText]}>
-                    {item.intento}
-                  </Text>
-                  <Text style={[styles.col, styles.colNota, { color: notaColor, fontWeight: '700' }]}>
-                    {nota != null ? nota.toFixed(1) : '—'}
-                  </Text>
-                  <Text style={[styles.col, styles.colTiempo, styles.cellText]}>
-                    {formatTime(item.tiempo_segundos)}
-                  </Text>
-                </View>
-              );
-            }}
+            renderItem={renderItem}
           />
         </>
       )}

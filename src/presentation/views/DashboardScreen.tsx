@@ -5,7 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AdminStackParamList } from '../navigation/AppNavigator';
@@ -64,9 +64,9 @@ function ExamenStatCard({
           <Text style={styles.statLabel}>Mín: <Text style={[styles.statValue, { color: '#EF4444' }]}>{item.nota_minima.toFixed(1)}</Text></Text>
         )}
       </View>
-      <TouchableOpacity style={styles.verResultadosBtn} onPress={onVerResultados}>
+      <Pressable style={styles.verResultadosBtn} onPress={onVerResultados}>
         <Text style={styles.verResultadosText}>Ver historial de resultados →</Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
@@ -157,9 +157,9 @@ export default function DashboardScreen({ navigation }: Props) {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryBtn} onPress={reload}>
+        <Pressable style={styles.retryBtn} onPress={reload}>
           <Text style={styles.retryText}>Reintentar</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -167,9 +167,9 @@ export default function DashboardScreen({ navigation }: Props) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.body}>
       <View style={styles.pageHeader}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>← Volver</Text>
-        </TouchableOpacity>
+        </Pressable>
         <Text style={styles.pageTitle}>Dashboard</Text>
         <Text style={styles.pageSubtitle}>Estadísticas del sistema</Text>
       </View>

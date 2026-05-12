@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Animated,
   ScrollView,
@@ -47,9 +47,9 @@ function DetalleModal({
               Intento #{resultado.intento} · {resultado.nota == null ? '-' : resultado.nota.toFixed(1)}/10
             </Text>
           </View>
-          <TouchableOpacity style={modalStyles.closeBtn} onPress={onClose}>
+          <Pressable style={modalStyles.closeBtn} onPress={onClose}>
             <Text style={modalStyles.closeText}>✕</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         <ScrollView contentContainerStyle={modalStyles.body} showsVerticalScrollIndicator={false}>
@@ -142,7 +142,7 @@ function HistoryCard({
   }, []);
 
   return (
-    <TouchableOpacity activeOpacity={0.75} onPress={onPress}>
+    <Pressable onPress={onPress}>
       <Animated.View style={[styles.card, { opacity: fadeAnim, borderColor: notaColor + '44' }]}>
         <View style={[styles.cardAccent, { backgroundColor: notaColor }]} />
         <View style={styles.cardBody}>
@@ -200,7 +200,7 @@ function HistoryCard({
           </View>
         </View>
       </Animated.View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -215,6 +215,14 @@ function HistoryCard({
 export default function HistoryScreen({ navigation }: Readonly<Props>) {
   const { user } = useAuth();
   const history = useHistoryScreen(user?.id);
+
+  const handleItemPress = useCallback((item: ResultadoDTO) => {
+    history.openDetalle(item);
+  }, [history.openDetalle]);
+
+  const renderItem = useCallback(({ item, index }: { item: ResultadoDTO; index: number }) => (
+    <HistoryCard item={item} index={index} onPress={() => handleItemPress(item)} />
+  ), [handleItemPress]);
 
   return (
     <View style={styles.container}>
@@ -232,9 +240,9 @@ export default function HistoryScreen({ navigation }: Readonly<Props>) {
           />
 
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Pressable onPress={() => navigation.goBack()}>
               <Text style={styles.backText}>← Volver</Text>
-            </TouchableOpacity>
+            </Pressable>
             <Text style={styles.headerTitle}>Historial</Text>
             <View style={styles.countBadge}>
               <Text style={styles.countText}>{history.resultadosFiltrados.length}</Text>
@@ -248,16 +256,16 @@ export default function HistoryScreen({ navigation }: Readonly<Props>) {
               style={styles.filterBar}
               contentContainerStyle={styles.filterBarContent}
             >
-              <TouchableOpacity
+              <Pressable
                 style={[styles.filterChip, history.filtroExamen === null && styles.filterChipActive]}
                 onPress={() => history.setFiltroExamen(null)}
               >
                 <Text style={[styles.filterChipText, history.filtroExamen === null && styles.filterChipTextActive]}>
                   Todos
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
               {history.examenesIds.map((id) => (
-                <TouchableOpacity
+                <Pressable
                   key={id}
                   style={[styles.filterChip, history.filtroExamen === id && styles.filterChipActive]}
                   onPress={() => history.setFiltroExamen(history.filtroExamen === id ? null : id)}
@@ -265,7 +273,7 @@ export default function HistoryScreen({ navigation }: Readonly<Props>) {
                   <Text style={[styles.filterChipText, history.filtroExamen === id && styles.filterChipTextActive]}>
                     Examen #{id}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </ScrollView>
           )}
@@ -301,9 +309,7 @@ export default function HistoryScreen({ navigation }: Readonly<Props>) {
                 <Text style={styles.emptyText}>Aún no has realizado ningún examen</Text>
               </View>
             }
-            renderItem={({ item, index }) => (
-              <HistoryCard item={item} index={index} onPress={() => history.openDetalle(item)} />
-            )}
+            renderItem={renderItem}
           />
         </>
       )}

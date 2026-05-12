@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -146,21 +146,21 @@ export default function LoginScreen({ navigation }: Props) {
                 label="Entrar"
                 style={styles.loginBtn}
               />
-              <TouchableOpacity onPress={forgot.open} style={styles.forgotRow}>
+              <Pressable onPress={forgot.open} style={styles.forgotRow}>
                 <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-              </TouchableOpacity>
+              </Pressable>
             </>
           ))}
         </View>
       ))}
 
       {anim(4, (
-        <TouchableOpacity onPress={() => navigation.navigate('Register')} style={styles.registerRow}>
+        <Pressable onPress={() => navigation.navigate('Register')} style={styles.registerRow}>
           <Text style={styles.registerText}>
             ¿No tienes cuenta?{' '}
             <Text style={styles.registerLink}>Regístrate</Text>
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       ))}
     </>
   );
@@ -175,9 +175,9 @@ export default function LoginScreen({ navigation }: Props) {
           <View style={styles.cardAccentBar} />
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Recuperar contraseña</Text>
-            <TouchableOpacity onPress={forgot.close} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+            <Pressable onPress={forgot.close} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
               <Text style={styles.modalClose}>✕</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {forgot.step === 1 && (
@@ -200,10 +200,10 @@ export default function LoginScreen({ navigation }: Props) {
               </View>
               {forgot.error ? <Text style={styles.errorText}>{forgot.error}</Text> : null}
               <View style={styles.modalBtns}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={forgot.close}>
+                <Pressable style={styles.cancelBtn} onPress={forgot.close}>
                   <Text style={styles.cancelBtnText}>Cancelar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </Pressable>
+                <Pressable
                   style={[styles.confirmBtn, forgot.loading && { opacity: 0.6 }]}
                   onPress={() => void forgot.requestCode()}
                   disabled={forgot.loading}
@@ -211,7 +211,7 @@ export default function LoginScreen({ navigation }: Props) {
                   {forgot.loading
                     ? <ActivityIndicator color="#fff" size="small" />
                     : <Text style={styles.confirmBtnText}>Enviar código</Text>}
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </>
           )}
@@ -236,12 +236,12 @@ export default function LoginScreen({ navigation }: Props) {
               </View>
               {forgot.error ? <Text style={styles.errorText}>{forgot.error}</Text> : null}
               <View style={styles.modalBtns}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={forgot.goBack}>
+                <Pressable style={styles.cancelBtn} onPress={forgot.goBack}>
                   <Text style={styles.cancelBtnText}>Atrás</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.confirmBtn} onPress={forgot.goToNewPassword}>
+                </Pressable>
+                <Pressable style={styles.confirmBtn} onPress={forgot.goToNewPassword}>
                   <Text style={styles.confirmBtnText}>Siguiente</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </>
           )}
@@ -272,10 +272,10 @@ export default function LoginScreen({ navigation }: Props) {
               </View>
               {forgot.error ? <Text style={styles.errorText}>{forgot.error}</Text> : null}
               <View style={styles.modalBtns}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={forgot.goBack}>
+                <Pressable style={styles.cancelBtn} onPress={forgot.goBack}>
                   <Text style={styles.cancelBtnText}>Atrás</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </Pressable>
+                <Pressable
                   style={[styles.confirmBtn, forgot.loading && { opacity: 0.6 }]}
                   onPress={() => void forgot.submit()}
                   disabled={forgot.loading}
@@ -283,7 +283,7 @@ export default function LoginScreen({ navigation }: Props) {
                   {forgot.loading
                     ? <ActivityIndicator color="#fff" size="small" />
                     : <Text style={styles.confirmBtnText}>Guardar</Text>}
-                </TouchableOpacity>
+                </Pressable>
               </View>
             </>
           )}
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     borderWidth: 2, borderColor: '#7C3AED',
     justifyContent: 'center', alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#7C3AED', shadowOpacity: 0.5, shadowRadius: 20, elevation: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   logoCircle: {
     width: 80, height: 80, borderRadius: 40,
@@ -428,7 +428,7 @@ const styles = StyleSheet.create({
   // Botones
   loginBtn: {
     backgroundColor: '#7C3AED', borderRadius: 14, paddingVertical: 15, marginTop: 8,
-    shadowColor: '#7C3AED', shadowOpacity: 0.5, shadowRadius: 14, elevation: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   forgotRow: { alignItems: 'center', marginTop: 16 },
   forgotText: { color: '#7C3AED', fontSize: 13, fontWeight: '600' },
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
   confirmBtn: {
     flex: 1, backgroundColor: '#7C3AED', borderRadius: 14,
     paddingVertical: 13, alignItems: 'center',
-    shadowColor: '#7C3AED', shadowOpacity: 0.4, shadowRadius: 8, elevation: 6,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
   },
   confirmBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14 },
 });

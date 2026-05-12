@@ -1,17 +1,16 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   RefreshControl,
   Modal,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { GameStackParamList } from '../navigation/AppNavigator';
@@ -50,12 +49,14 @@ function calcStars(nota: number): number {
  *   y eliminación, y cabecera con información del usuario.
  */
 export default function MapScreen({ navigation }: Props) {
+  const { width, height } = useWindowDimensions();
   const { user, isAlumno, isProfesor, isAdmin, signOut } = useAuth();
-  const [examenes, setExamenes] = useState<ExamenDTO[]>([]);
+  const examenesRef = useRef<ExamenDTO[]>([]);
   const [nodes, setNodes] = useState<ExamNodeInfo[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(true);
+  const [loadingVisible, setLoadingVisible] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -69,7 +70,8 @@ export default function MapScreen({ navigation }: Props) {
   const [numPreguntasModalVisible, setNumPreguntasModalVisible] = useState(false);
   const [pendingCategoria, setPendingCategoria] = useState<string | null | undefined>(undefined);
   const [numPreguntasError, setNumPreguntasError] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const loadErrorRef = useRef(false);
+  const [loadErrorVisible, setLoadErrorVisible] = useState(false);
   const [nombreCompleto, setNombreCompleto] = useState<string | null>(null);
 
   const getExamenesUseCase = useMemo(() => container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase), []);
@@ -87,10 +89,11 @@ export default function MapScreen({ navigation }: Props) {
   }, [user?.id]);
 
   const loadData = useCallback(async () => {
-    setLoadError(false);
+    loadErrorRef.current = false;
+    setLoadErrorVisible(false);
     try {
       const exams = await getExamenesUseCase.execute();
-      setExamenes(exams);
+      examenesRef.current = exams;
 
       // Cargar categorías disponibles
       const cats = await getCategoriasUseCase.execute().catch(() => []);
@@ -115,16 +118,19 @@ export default function MapScreen({ navigation }: Props) {
         );
       }
     } catch {
-      setLoadError(true);
+      loadErrorRef.current = true;
+      setLoadErrorVisible(true);
     } finally {
-      setLoading(false);
+      loadingRef.current = false;
+      setLoadingVisible(false);
       setRefreshing(false);
     }
   }, [isAlumno, user]);
 
   useFocusEffect(
     useCallback(() => {
-      setLoading(true);
+      loadingRef.current = true;
+      setLoadingVisible(true);
       loadData();
     }, [loadData]),
   );
@@ -209,27 +215,27 @@ export default function MapScreen({ navigation }: Props) {
   const totalStars = filteredNodes.reduce((acc, n) => acc + n.stars, 0);
   const completedCount = filteredNodes.filter((n) => n.status === 'completed').length;
 
-  if (loading) {
+  if (loadingVisible) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#7C3AED" />
-        <Text style={styles.loadingText}>Cargando mapa...</Text>
+        <Text style={styles.loadingText}>Cargando mapa…</Text>
       </View>
     );
   }
 
-  if (loadError) {
+  if (loadErrorVisible) {
     return (
       <View style={styles.center}>
         <Text style={{ fontSize: 16, color: '#EF4444', marginBottom: 16, textAlign: 'center' }}>
           No se pudieron cargar los exámenes.{'\n'}Comprueba tu conexión e inténtalo de nuevo.
         </Text>
-        <TouchableOpacity
+        <Pressable
           style={{ backgroundColor: '#7C3AED', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-          onPress={() => { setLoading(true); loadData(); }}
+          onPress={() => { setLoadingVisible(true); loadData(); }}
         >
           <Text style={{ color: '#fff', fontWeight: '600' }}>Reintentar</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     );
   }
@@ -250,9 +256,9 @@ export default function MapScreen({ navigation }: Props) {
               : 'Panel de profesor'}
           </Text>
         </View>
-        <TouchableOpacity onPress={signOut} style={styles.logoutBtn}>
+        <Pressable onPress={signOut} style={styles.logoutBtn}>
           <Text style={styles.logoutText}>Salir</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Filtro por categoría */}
@@ -263,16 +269,16 @@ export default function MapScreen({ navigation }: Props) {
           style={styles.categoriaBar}
           contentContainerStyle={styles.categoriaBarContent}
         >
-          <TouchableOpacity
+          <Pressable
             style={[styles.categoriaChip, selectedCategoria === null && styles.categoriaChipActive]}
             onPress={() => setSelectedCategoria(null)}
           >
             <Text style={[styles.categoriaChipText, selectedCategoria === null && styles.categoriaChipTextActive]}>
               Todas
             </Text>
-          </TouchableOpacity>
+          </Pressable>
           {categorias.map((cat) => (
-            <TouchableOpacity
+            <Pressable
               key={cat}
               style={[styles.categoriaChip, selectedCategoria === cat && styles.categoriaChipActive]}
               onPress={() => setSelectedCategoria(cat)}
@@ -280,7 +286,7 @@ export default function MapScreen({ navigation }: Props) {
               <Text style={[styles.categoriaChipText, selectedCategoria === cat && styles.categoriaChipTextActive]}>
                 {cat}
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           ))}
         </ScrollView>
       )}
@@ -304,7 +310,7 @@ export default function MapScreen({ navigation }: Props) {
 
       {/* Create button for profesor/admin */}
       {(isProfesor || isAdmin) && (
-        <TouchableOpacity
+        <Pressable
           style={[styles.createBtn, creating && styles.btnDisabled]}
           onPress={handleCreate}
           disabled={creating}
@@ -314,7 +320,7 @@ export default function MapScreen({ navigation }: Props) {
           ) : (
             <Text style={styles.createBtnText}>+ Generar nuevo examen</Text>
           )}
-        </TouchableOpacity>
+        </Pressable>
       )}
 
       {/* Map */}
@@ -348,7 +354,7 @@ export default function MapScreen({ navigation }: Props) {
             </View>
           </View>
 
-          {filteredNodes.map((info) => (
+          {filteredNodes.map((info, index) => (
             <View key={`exam-${info.examen.id}`}>
               <View style={styles.pathLine} />
               <ExamNode
@@ -388,29 +394,29 @@ export default function MapScreen({ navigation }: Props) {
               <ActivityIndicator color="#7C3AED" style={{ marginVertical: 16 }} />
             ) : (
               <ScrollView style={styles.categoriaList} showsVerticalScrollIndicator={false}>
-                <TouchableOpacity
+                <Pressable
                   style={styles.categoriaItem}
                   onPress={() => handleSelectCategoria(null)}
                 >
                   <Text style={styles.categoriaItemText}>Todas las categorías</Text>
-                </TouchableOpacity>
+                </Pressable>
                 {categorias.map((cat) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={cat}
                     style={styles.categoriaItem}
                     onPress={() => handleSelectCategoria(cat)}
                   >
                     <Text style={styles.categoriaItemText}>{cat}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </ScrollView>
             )}
-            <TouchableOpacity
+            <Pressable
               style={[styles.cancelBtn, { width: '100%', flex: undefined }]}
               onPress={() => setCategoriaModalVisible(false)}
             >
               <Text style={styles.cancelBtnText}>Cancelar</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -433,7 +439,7 @@ export default function MapScreen({ navigation }: Props) {
               { num: 20, label: '20 preguntas', dif: 'Medio', color: '#F59E0B' },
               { num: 30, label: '30 preguntas', dif: 'Difícil', color: '#EF4444' },
             ] as const).map(({ num, label, dif, color }) => (
-              <TouchableOpacity
+              <Pressable
                 key={num}
                 style={[styles.categoriaItem, { marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }]}
                 onPress={() => void handleSelectNumPreguntas(num)}
@@ -442,17 +448,17 @@ export default function MapScreen({ navigation }: Props) {
                 <View style={[styles.difBadge, { backgroundColor: color + '22', borderColor: color }]}>
                   <Text style={[styles.difBadgeText, { color }]}>{dif}</Text>
                 </View>
-              </TouchableOpacity>
+              </Pressable>
             ))}
             {numPreguntasError && (
               <Text style={[styles.modalMessage, { color: '#EF4444', marginTop: 8 }]}>{numPreguntasError}</Text>
             )}
-            <TouchableOpacity
+            <Pressable
               style={[styles.cancelBtn, { width: '100%', flex: undefined, marginTop: 8 }]}
               onPress={() => { setNumPreguntasModalVisible(false); setNumPreguntasError(null); }}
             >
               <Text style={styles.cancelBtnText}>Cancelar</Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
         </View>
       </Modal>
@@ -483,15 +489,15 @@ export default function MapScreen({ navigation }: Props) {
               </Text>
             )}
             <View style={styles.modalActions}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.cancelBtn}
                 onPress={() => { setDeleteModalVisible(false); setDeleteError(null); }}
               >
                 <Text style={styles.cancelBtnText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmBtn} onPress={confirmDelete}>
+              </Pressable>
+              <Pressable style={styles.confirmBtn} onPress={confirmDelete}>
                 <Text style={styles.confirmBtnText}>Eliminar</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
         </View>
@@ -577,10 +583,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
   },
   btnDisabled: { opacity: 0.6 },
   createBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
@@ -632,10 +635,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#2D2D44',
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 12,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   modalIconCircle: {
     width: 64,
@@ -707,10 +707,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#EF4444',
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    boxShadow: '0 2px 8px rgba(239,68,68,0.4)',
   },
   confirmBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

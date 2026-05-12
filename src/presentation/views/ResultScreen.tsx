@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   Animated,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -166,12 +166,12 @@ export default function ResultScreen({ navigation, route }: Props) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.btnSecondary} onPress={() => navigation.goBack()}>
+        <Pressable style={styles.btnSecondary} onPress={() => navigation.goBack()}>
           <Text style={styles.btnSecondaryText}>🔁 Reintentar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.btnPrimary} onPress={() => navigation.navigate('Map')}>
+        </Pressable>
+        <Pressable style={styles.btnPrimary} onPress={() => navigation.navigate('Map')}>
           <Text style={styles.btnPrimaryText}>Volver al mapa 🗺️</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -279,10 +279,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 14,
     alignItems: 'center',
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   btnPrimaryText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useAlert } from '../viewmodels/AlertContext';
 
 /**
@@ -37,15 +37,15 @@ export function AppAlertModal() {
 
           <View style={[styles.btnRow, (cancelBtn || actionBtns.length > 1) && styles.btnRowMulti]}>
             {cancelBtn && (
-              <TouchableOpacity
+              <Pressable
                 style={[styles.btn, styles.btnCancel, styles.btnFlex]}
                 onPress={() => handlePress(cancelBtn)}
               >
                 <Text style={styles.btnCancelText}>{cancelBtn.text}</Text>
-              </TouchableOpacity>
+              </Pressable>
             )}
             {actionBtns.map((btn) => (
-              <TouchableOpacity
+              <Pressable
                 key={btn.text}
                 style={[
                   styles.btn,
@@ -57,7 +57,7 @@ export function AppAlertModal() {
                 <Text style={btn.style === 'destructive' ? styles.btnDestructiveText : styles.btnPrimaryText}>
                   {btn.text}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         </View>

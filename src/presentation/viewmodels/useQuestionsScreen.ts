@@ -247,7 +247,10 @@ export function useQuestionsScreen() {
     const data: PreguntaInput = {
       enunciado: enunciado.trim(),
       es_multiple: esMultiple,
-      respuestas: respuestas.filter((r) => r.texto.trim()).map(({ _key: _, ...r }) => r),
+      respuestas: respuestas.reduce<Omit<RespuestaInput, '_key'>[]>((acc, { _key: _, ...r }) => {
+        if (r.texto.trim()) acc.push(r);
+        return acc;
+      }, []),
       dificultad: dificultad || undefined,
       categoria: categoria.trim() || undefined,
     };

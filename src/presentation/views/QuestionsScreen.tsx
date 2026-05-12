@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Modal,
   TextInput,
@@ -75,12 +75,12 @@ function PreguntaCard({
         </Text>
       </View>
       <View style={styles.cardActions}>
-        <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
+        <Pressable onPress={onEdit} style={styles.editBtn}>
           <Text style={styles.editBtnText}>Editar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+        </Pressable>
+        <Pressable onPress={onDelete} style={styles.deleteBtn}>
           <Text style={styles.deleteBtnText}>Eliminar</Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
@@ -116,12 +116,12 @@ function RespuestaRow({
 }>) {
   return (
     <View style={styles.respRow}>
-      <TouchableOpacity
+      <Pressable
         onPress={onToggleCorrect}
         style={[styles.correctToggle, respuesta.es_correcta && styles.correctToggleOn]}
       >
         <Text style={styles.correctToggleText}>{respuesta.es_correcta ? '✓' : '○'}</Text>
-      </TouchableOpacity>
+      </Pressable>
       <TextInput
         style={[styles.respInput, respuesta.es_correcta && styles.respInputCorrect]}
         placeholder={`Respuesta ${index + 1}`}
@@ -130,9 +130,9 @@ function RespuestaRow({
         onChangeText={onChangeText}
       />
       {canRemove && (
-        <TouchableOpacity onPress={onRemove} style={styles.removeBtn}>
+        <Pressable onPress={onRemove} style={styles.removeBtn}>
           <Text style={styles.removeBtnText}>✕</Text>
-        </TouchableOpacity>
+        </Pressable>
       )}
     </View>
   );
@@ -177,13 +177,13 @@ function FormTab({ q }: Readonly<{ q: QState }>) {
           const color = d ? DIFICULTAD_COLORS[d] : '#94A3B8';
           const active = q.dificultad === d;
           return (
-            <TouchableOpacity
+            <Pressable
               key={d || 'ninguna'}
               style={[styles.dificultadChip, active && { backgroundColor: color + '33', borderColor: color }]}
               onPress={() => q.setDificultad(d)}
             >
               <Text style={[styles.dificultadChipText, active && { color }]}>{d || 'Ninguna'}</Text>
-            </TouchableOpacity>
+            </Pressable>
           );
         })}
       </View>
@@ -211,11 +211,11 @@ function FormTab({ q }: Readonly<{ q: QState }>) {
         />
       ))}
 
-      <TouchableOpacity onPress={q.addRespuesta} style={styles.addRespBtn}>
+      <Pressable onPress={q.addRespuesta} style={styles.addRespBtn}>
         <Text style={styles.addRespText}>+ Añadir respuesta</Text>
-      </TouchableOpacity>
+      </Pressable>
 
-      <TouchableOpacity
+      <Pressable
         style={[styles.saveBtn, q.saving && styles.saveBtnDisabled]}
         onPress={q.handleSave}
         disabled={q.saving}
@@ -225,7 +225,7 @@ function FormTab({ q }: Readonly<{ q: QState }>) {
         ) : (
           <Text style={styles.saveBtnText}>{q.editing ? 'Guardar cambios' : 'Crear pregunta'}</Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -286,7 +286,7 @@ function JsonTab({ q }: Readonly<{ q: QState }>) {
         spellCheck={false}
       />
       <JsonErrorList errors={q.jsonErrors} />
-      <TouchableOpacity
+      <Pressable
         style={[styles.saveBtn, q.jsonImporting && styles.saveBtnDisabled]}
         onPress={q.handleJsonImport}
         disabled={q.jsonImporting}
@@ -296,7 +296,7 @@ function JsonTab({ q }: Readonly<{ q: QState }>) {
         ) : (
           <Text style={styles.saveBtnText}>Importar preguntas</Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -366,9 +366,9 @@ function CsvTab({ q }: Readonly<{ q: QState }>) {
   return (
     <ScrollView contentContainerStyle={styles.modalBody}>
       <Text style={styles.fieldLabel}>CSV de preguntas</Text>
-      <TouchableOpacity style={styles.templateBtn} onPress={descargarPlantillaExcel}>
+      <Pressable style={styles.templateBtn} onPress={descargarPlantillaExcel}>
         <Text style={styles.templateBtnText}>⬇ Descargar plantilla Excel</Text>
-      </TouchableOpacity>
+      </Pressable>
       <Text style={styles.jsonHint}>
         Pega el contenido de un fichero CSV con cabecera:{'\n'}
         <Text style={styles.jsonCode}>enunciado,es_multiple,dificultad,categoria,respuesta_1,correcta_1,respuesta_2,correcta_2,...</Text>{'\n\n'}
@@ -387,7 +387,7 @@ function CsvTab({ q }: Readonly<{ q: QState }>) {
         spellCheck={false}
       />
       <JsonErrorList errors={q.csvErrors} />
-      <TouchableOpacity
+      <Pressable
         style={[styles.saveBtn, q.csvImporting && styles.saveBtnDisabled]}
         onPress={q.handleCsvImport}
         disabled={q.csvImporting}
@@ -397,7 +397,7 @@ function CsvTab({ q }: Readonly<{ q: QState }>) {
         ) : (
           <Text style={styles.saveBtnText}>Importar CSV</Text>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </ScrollView>
   );
 }
@@ -413,8 +413,16 @@ function CsvTab({ q }: Readonly<{ q: QState }>) {
  *   y modal de confirmación de eliminación.
  */
 export default function QuestionsScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
+  const { goBack } = useNavigation<NativeStackNavigationProp<AdminStackParamList>>();
   const q = useQuestionsScreen();
+
+  const renderItem = useCallback(({ item }: { item: PreguntaDTO }) => (
+    <PreguntaCard
+      item={item}
+      onEdit={() => q.openEdit(item)}
+      onDelete={() => q.handleDelete(item)}
+    />
+  ), [q.openEdit, q.handleDelete]);
 
   return (
     <View style={styles.container}>
@@ -427,14 +435,14 @@ export default function QuestionsScreen() {
       {!q.loading && (
         <>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Pressable onPress={goBack} style={styles.backBtn}>
               <Text style={styles.backBtnText}>← Volver</Text>
-            </TouchableOpacity>
+            </Pressable>
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>Preguntas</Text>
-              <TouchableOpacity style={styles.addBtn} onPress={q.openCreate}>
+              <Pressable style={styles.addBtn} onPress={q.openCreate}>
                 <Text style={styles.addBtnText}>+ Nueva</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
@@ -442,7 +450,7 @@ export default function QuestionsScreen() {
           <View style={styles.filterBar}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChips}>
               {(['', 'FACIL', 'MEDIA', 'DIFICIL'] as const).map((d) => (
-                <TouchableOpacity
+                <Pressable
                   key={d || 'todas'}
                   style={[styles.filterChip, q.filterDificultad === d && styles.filterChipActive]}
                   onPress={() => q.setFilterDificultad(d)}
@@ -450,7 +458,7 @@ export default function QuestionsScreen() {
                   <Text style={[styles.filterChipText, q.filterDificultad === d && styles.filterChipTextActive]}>
                     {d || 'Todas'}
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               ))}
             </ScrollView>
             <TextInput
@@ -476,13 +484,7 @@ export default function QuestionsScreen() {
             ListFooterComponent={
               q.loadingMore ? <ActivityIndicator color="#7C3AED" style={{ marginVertical: 12 }} /> : null
             }
-            renderItem={({ item }) => (
-              <PreguntaCard
-                item={item}
-                onEdit={() => q.openEdit(item)}
-                onDelete={() => q.handleDelete(item)}
-              />
-            )}
+            renderItem={renderItem}
           />
 
           {/* Modal confirmación borrar */}
@@ -504,14 +506,14 @@ export default function QuestionsScreen() {
                   </View>
                 )}
                 <View style={styles.deleteActions}>
-                  <TouchableOpacity
+                  <Pressable
                     style={styles.deleteCancelBtn}
                     onPress={q.cancelDelete}
                     disabled={q.deleting}
                   >
                     <Text style={styles.deleteCancelText}>Cancelar</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Pressable>
+                  <Pressable
                     style={[styles.deleteConfirmBtn, q.deleting && styles.saveBtnDisabled]}
                     onPress={q.confirmDelete}
                     disabled={q.deleting}
@@ -521,7 +523,7 @@ export default function QuestionsScreen() {
                     ) : (
                       <Text style={styles.deleteConfirmText}>Eliminar</Text>
                     )}
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               </View>
             </View>
@@ -538,38 +540,38 @@ export default function QuestionsScreen() {
                 <Text style={styles.modalTitle}>
                   {q.editing ? 'Editar pregunta' : 'Nueva pregunta'}
                 </Text>
-                <TouchableOpacity onPress={q.closeModal}>
+                <Pressable onPress={q.closeModal}>
                   <Text style={styles.modalClose}>✕</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
 
               {/* Pestañas (solo en modo creación) */}
               {!q.editing && (
                 <View style={styles.tabBar}>
-                  <TouchableOpacity
+                  <Pressable
                     style={[styles.tab, q.activeTab === 'form' && styles.tabActive]}
                     onPress={() => q.setActiveTab('form')}
                   >
                     <Text style={[styles.tabText, q.activeTab === 'form' && styles.tabTextActive]}>
                       Formulario
                     </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Pressable>
+                  <Pressable
                     style={[styles.tab, q.activeTab === 'json' && styles.tabActive]}
                     onPress={() => q.setActiveTab('json')}
                   >
                     <Text style={[styles.tabText, q.activeTab === 'json' && styles.tabTextActive]}>
                       JSON
                     </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
+                  </Pressable>
+                  <Pressable
                     style={[styles.tab, q.activeTab === 'csv' && styles.tabActive]}
                     onPress={() => q.setActiveTab('csv')}
                   >
                     <Text style={[styles.tabText, q.activeTab === 'csv' && styles.tabTextActive]}>
                       CSV
                     </Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 </View>
               )}
 
@@ -710,10 +712,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },

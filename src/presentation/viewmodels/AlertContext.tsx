@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, use, useCallback, useState } from 'react';
 
 /**
  * Definición de un botón de la alerta global.
@@ -81,5 +81,5 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
  * @returns El valor del contexto de alerta: `showAlert`, `alertOptions` y `dismiss`.
  */
 export function useAlert() {
-  return useContext(AlertContext);
+  return use(AlertContext);
 }

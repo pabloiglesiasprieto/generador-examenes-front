@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  TouchableOpacity,
+  Pressable,
   Text,
   ActivityIndicator,
   StyleSheet,
@@ -53,7 +53,7 @@ export function LoadingButton({
   loadingColor = '#fff',
 }: Props) {
   return (
-    <TouchableOpacity
+    <Pressable
       style={[styles.btn, (loading || disabled) && styles.disabled, style]}
       onPress={onPress}
       disabled={loading || disabled}
@@ -63,7 +63,7 @@ export function LoadingButton({
       ) : (
         <Text style={[styles.text, textStyle]}>{label}</Text>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -74,10 +74,7 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#7C3AED',
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 8,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
   },
   disabled: { opacity: 0.6 },
   text: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, use, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import { AuthUser, JwtPayload } from '../../domain/entities/Auth';
@@ -102,4 +102,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * @precondition El componente debe estar dentro de un {@link AuthProvider}.
  * @returns El valor del contexto de autenticación.
  */
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => use(AuthContext);

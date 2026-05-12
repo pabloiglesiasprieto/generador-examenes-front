@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { ExamNodeInfo } from '../../domain/entities/Examen';
 
 /**
@@ -154,10 +154,9 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
 
   return (
     <View style={[styles.row, isRight ? styles.rowRight : styles.rowLeft]}>
-      <TouchableOpacity
+      <Pressable
         onPress={onPress}
         style={[styles.nodeWrapper, isRight ? styles.nodeRight : styles.nodeLeft]}
-        activeOpacity={0.82}
       >
         {/* Anillo pulsante (solo en disponibles) */}
         {status !== 'completed' && (
@@ -169,7 +168,7 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
           />
         )}
 
-        <View style={[styles.nodeShadow, { shadowColor: nodeColor }]}>
+        <View style={[styles.nodeShadow, { boxShadow: '0 2px 8px rgba(0,0,0,0.75)' }]}>
           <View style={[styles.node, { backgroundColor: nodeColor }]}>
             {status === 'completed' ? (
               <Text style={styles.checkmark}>{isFailed ? '✕' : '✓'}</Text>
@@ -204,11 +203,11 @@ export default function ExamNode({ info, index, onPress, isProfesor, onDelete }:
 
         {/* Botón eliminar */}
         {isProfesor && onDelete && (
-          <TouchableOpacity onPress={onDelete} style={styles.deleteBtn}>
+          <Pressable onPress={onDelete} style={styles.deleteBtn}>
             <Text style={styles.deleteText}>✕</Text>
-          </TouchableOpacity>
+          </Pressable>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
@@ -238,10 +237,6 @@ const styles = StyleSheet.create({
     top: 0,
   },
   nodeShadow: {
-    shadowOpacity: 0.75,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 12,
     marginBottom: 10,
   },
   node: {
@@ -270,6 +265,7 @@ const styles = StyleSheet.create({
     padding: 10,
     width: 148,
     gap: 4,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
   },
   cardTop: {
     flexDirection: 'row',

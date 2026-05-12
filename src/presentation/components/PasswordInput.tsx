@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { View, TextInput, Pressable, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 /**
@@ -55,13 +55,13 @@ export function PasswordInput({
         onChangeText={onChangeText}
         secureTextEntry={!show}
       />
-      <TouchableOpacity onPress={onToggleShow} style={styles.eyeBtn}>
+      <Pressable onPress={onToggleShow} style={styles.eyeBtn}>
         <Ionicons
           name={show ? 'eye-off-outline' : 'eye-outline'}
           size={20}
           color="#94A3B8"
         />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }

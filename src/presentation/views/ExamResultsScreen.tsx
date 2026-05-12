@@ -14,7 +14,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AdminStackParamList } from '../navigation/AppNavigator';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
-import { IGetResultadosExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
+import { IGetResultadosExamenUseCase, IGetExamenByIdUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
+import { IGetUsuarioByIdUseCase } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { ResultadoDTO } from '../../domain/entities/Examen';
 import { HEADER_TOP } from '../utils/responsive';
 
@@ -129,18 +130,36 @@ export default function ExamResultsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ResultadoDTO | null>(null);
+  const [autorNombre, setAutorNombre] = useState<string | null>(null);
+  const [fechaCreacion, setFechaCreacion] = useState<string | null>(null);
 
   const getResultadosUseCase = useMemo(
     () => container.get<IGetResultadosExamenUseCase>(TYPES.IGetResultadosExamenUseCase),
     [],
   );
+  const getExamenByIdUseCase = useMemo(
+    () => container.get<IGetExamenByIdUseCase>(TYPES.IGetExamenByIdUseCase),
+    [],
+  );
+  const getUsuarioByIdUseCase = useMemo(
+    () => container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase),
+    [],
+  );
 
   useEffect(() => {
-    getResultadosUseCase
+    const fetchResultados = getResultadosUseCase
       .execute(examenId)
       .then(setResults)
-      .catch(() => setError('No se pudieron cargar los resultados'))
-      .finally(() => setLoading(false));
+      .catch(() => setError('No se pudieron cargar los resultados'));
+
+    const fetchAutor = getExamenByIdUseCase.execute(examenId).then((examen) => {
+      setFechaCreacion(new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }));
+      return getUsuarioByIdUseCase.execute(examen.autor_id).then((u) => {
+        setAutorNombre(`${u.nombre_usuario} ${u.apellido_usuario}`);
+      });
+    }).catch(() => {});
+
+    Promise.all([fetchResultados, fetchAutor]).finally(() => setLoading(false));
   }, [examenId]);
 
   const renderItem = useCallback(({ item }: { item: ResultadoDTO }) => {
@@ -190,6 +209,15 @@ export default function ExamResultsScreen() {
         </Pressable>
         <Text style={styles.title}>Examen #{examenId}</Text>
         <Text style={styles.subtitle}>Resultados de alumnos</Text>
+        {autorNombre && (
+          <View style={styles.autorRow}>
+            <Text style={styles.autorIcon}>✍️</Text>
+            <Text style={styles.autorText}>
+              {autorNombre}
+              {fechaCreacion ? <Text style={styles.autorDate}> · {fechaCreacion}</Text> : null}
+            </Text>
+          </View>
+        )}
       </View>
 
       {loading ? (
@@ -230,6 +258,10 @@ const styles = StyleSheet.create({
   backText: { color: '#7C3AED', fontSize: 14, fontWeight: '600' },
   title: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
   subtitle: { fontSize: 13, color: '#94A3B8', marginTop: 2 },
+  autorRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
+  autorIcon: { fontSize: 13 },
+  autorText: { fontSize: 13, color: '#A78BFA', fontWeight: '600' },
+  autorDate: { color: '#64748B', fontWeight: '400' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   errorText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
   emptyText: { color: '#94A3B8', fontSize: 15, textAlign: 'center' },

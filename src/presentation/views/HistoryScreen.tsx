@@ -28,33 +28,30 @@ function HorizontalScroll({
   contentContainerStyle,
   children,
 }: Readonly<{ style?: StyleProp<ViewStyle>; contentContainerStyle?: StyleProp<ViewStyle>; children: React.ReactNode }>) {
-  const ref = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
+    if (Platform.OS !== 'web') return;
+    const node = (scrollRef.current as any)?.getScrollableNode?.() as HTMLElement | null;
+    if (!node) return;
     const onWheel = (e: WheelEvent) => {
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         e.preventDefault();
-        el.scrollLeft += e.deltaY;
+        node.scrollLeft += e.deltaY;
       }
     };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    node.addEventListener('wheel', onWheel, { passive: false });
+    return () => node.removeEventListener('wheel', onWheel);
   }, []);
 
-  if (Platform.OS === 'web') {
-    return (
-      <div ref={ref} style={{ overflowX: 'auto', overflowY: 'hidden', ...(StyleSheet.flatten(style) as object) }}>
-        <div style={{ display: 'flex', flexDirection: 'row', ...(StyleSheet.flatten(contentContainerStyle) as object) }}>
-          {children}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={style} contentContainerStyle={contentContainerStyle}>
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={style}
+      contentContainerStyle={contentContainerStyle}
+    >
       {children}
     </ScrollView>
   );

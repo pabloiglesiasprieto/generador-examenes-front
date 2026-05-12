@@ -63,8 +63,8 @@ export function useUsersScreen(currentUserId: number | undefined) {
     }, [loadUsuarios]),
   );
 
-  const usuariosActivos = useMemo(() => usuarios.filter((u) => u.activo !== false), [usuarios]);
-  const usuariosInactivos = useMemo(() => usuarios.filter((u) => u.activo === false), [usuarios]);
+  const usuariosActivos = useMemo(() => usuarios.filter((u) => u.activo === true), [usuarios]);
+  const usuariosInactivos = useMemo(() => usuarios.filter((u) => u.activo !== true), [usuarios]);
 
   const openUserDetail = async (u: UsuarioDTO) => {
     setSelectedUser(u);

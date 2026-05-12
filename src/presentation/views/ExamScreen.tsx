@@ -45,16 +45,16 @@ function ExamFooterButton({
 }>) {
   const isFirst = session.currentIndex === 0;
 
+  const prevBtn = !isFirst && (
+    <Pressable style={styles.btnPrev} onPress={session.goPrev}>
+      <Text style={styles.btnPrevText}>← Anterior</Text>
+    </Pressable>
+  );
+
   if (isAdminMode) {
     return (
       <View style={styles.footerRow}>
-        <Pressable
-          style={[styles.btnPrev, isFirst && styles.btnPrevHidden]}
-          onPress={session.goPrev}
-          disabled={isFirst}
-        >
-          <Text style={styles.btnPrevText}>← Anterior</Text>
-        </Pressable>
+        {prevBtn}
         <Pressable style={[styles.btn, styles.btnClose]} onPress={onClose}>
           <Text style={styles.btnText}>{session.isLast ? 'Cerrar' : 'Siguiente →'}</Text>
         </Pressable>
@@ -65,9 +65,7 @@ function ExamFooterButton({
   if (session.isLast) {
     return (
       <View style={styles.footerRow}>
-        <Pressable style={[styles.btnPrev, isFirst && styles.btnPrevHidden]} onPress={session.goPrev} disabled={isFirst}>
-          <Text style={styles.btnPrevText}>← Anterior</Text>
-        </Pressable>
+        {prevBtn}
         <Pressable
           style={[styles.btn, styles.btnSubmit, session.submitting && styles.btnDisabled]}
           onPress={onSubmit}
@@ -85,9 +83,7 @@ function ExamFooterButton({
 
   return (
     <View style={styles.footerRow}>
-      <Pressable style={[styles.btnPrev, isFirst && styles.btnPrevHidden]} onPress={session.goPrev} disabled={isFirst}>
-        <Text style={styles.btnPrevText}>← Anterior</Text>
-      </Pressable>
+      {prevBtn}
       <Pressable
         style={[styles.btn, !session.hasAnswered && styles.btnMuted]}
         onPress={session.goNext}
@@ -494,8 +490,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2D2D44',
   },
-  btnPrevHidden: { opacity: 0, pointerEvents: 'none' },
-  btnPrevText: { color: '#94A3B8', fontSize: 14, fontWeight: '600' },
+btnPrevText: { color: '#94A3B8', fontSize: 14, fontWeight: '600' },
   btn: {
     flex: 1,
     backgroundColor: '#7C3AED',

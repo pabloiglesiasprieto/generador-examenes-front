@@ -15,6 +15,7 @@ import { ResultadoDTO } from '../../domain/entities/Examen';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
 import { IIniciarExamenUseCase } from '../../domain/interfaces/useCases/examenes/IExamenUseCase';
+import { IGetUsuarioByIdUseCase } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { useAlert } from '../viewmodels/AlertContext';
 import { HEADER_TOP } from '../utils/responsive';
 
@@ -103,6 +104,19 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   const { showAlert } = useAlert();
   const session = useExamSession(examen, isAdminMode);
   const [submitModalVisible, setSubmitModalVisible] = useState(false);
+  const [autorNombre, setAutorNombre] = useState<string | null>(null);
+
+  const getUsuarioByIdUseCase = useMemo(
+    () => container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase),
+    [],
+  );
+
+  useEffect(() => {
+    if (!isAdminMode) return;
+    getUsuarioByIdUseCase.execute(examen.autor_id).then((u) => {
+      setAutorNombre(`${u.nombre_usuario} ${u.apellido_usuario}`);
+    }).catch(() => {});
+  }, [examen.autor_id, isAdminMode]);
   const [quitModalVisible, setQuitModalVisible] = useState(false);
 
   const iniciarExamenUseCase = useMemo(() => container.get<IIniciarExamenUseCase>(TYPES.IIniciarExamenUseCase), []);
@@ -194,6 +208,19 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
           </View>
 
           <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+            {isAdminMode && (
+              <View style={styles.adminInfoBanner}>
+                <Text style={styles.adminInfoItem}>
+                  ✍️ <Text style={styles.adminInfoValue}>{autorNombre ?? `#${examen.autor_id}`}</Text>
+                </Text>
+                <View style={styles.adminInfoDivider} />
+                <Text style={styles.adminInfoItem}>
+                  📅 <Text style={styles.adminInfoValue}>
+                    {new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </Text>
+                </Text>
+              </View>
+            )}
             <View style={styles.questionCard}>
               <View style={styles.questionBadge}>
                 <Text style={styles.questionBadgeText}>
@@ -362,6 +389,21 @@ const styles = StyleSheet.create({
     borderColor: '#3B82F6',
   },
   adminBadgeText: { color: '#93C5FD', fontSize: 12, fontWeight: '700' },
+  adminInfoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(59,130,246,0.08)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59,130,246,0.2)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+    gap: 12,
+  },
+  adminInfoItem: { color: '#94A3B8', fontSize: 13 },
+  adminInfoValue: { color: '#93C5FD', fontWeight: '600' },
+  adminInfoDivider: { width: 1, height: 16, backgroundColor: 'rgba(59,130,246,0.3)' },
   progressTrack: {
     height: 6,
     backgroundColor: '#2D2D44',

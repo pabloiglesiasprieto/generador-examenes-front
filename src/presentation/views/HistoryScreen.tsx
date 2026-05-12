@@ -9,6 +9,9 @@ import {
   Animated,
   ScrollView,
   Modal,
+  Platform,
+  StyleProp,
+  ViewStyle,
 } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '../navigation/AppNavigator';
@@ -19,6 +22,43 @@ import { ResultadoDTO } from '../../domain/entities/Examen';
 import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'History'>;
+
+function HorizontalScroll({
+  style,
+  contentContainerStyle,
+  children,
+}: Readonly<{ style?: StyleProp<ViewStyle>; contentContainerStyle?: StyleProp<ViewStyle>; children: React.ReactNode }>) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
+  if (Platform.OS === 'web') {
+    return (
+      <div ref={ref} style={{ overflowX: 'auto', overflowY: 'hidden', ...(StyleSheet.flatten(style) as object) }}>
+        <div style={{ display: 'flex', flexDirection: 'row', ...(StyleSheet.flatten(contentContainerStyle) as object) }}>
+          {children}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={style} contentContainerStyle={contentContainerStyle}>
+      {children}
+    </ScrollView>
+  );
+}
 
 /**
  * Modal de detalle de un intento de examen.
@@ -250,12 +290,7 @@ export default function HistoryScreen({ navigation }: Readonly<Props>) {
           </View>
 
           {history.examenesIds.length > 1 && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.filterBar}
-              contentContainerStyle={styles.filterBarContent}
-            >
+            <HorizontalScroll style={styles.filterBar} contentContainerStyle={styles.filterBarContent}>
               <Pressable
                 style={[styles.filterChip, history.filtroExamen === null && styles.filterChipActive]}
                 onPress={() => history.setFiltroExamen(null)}
@@ -275,34 +310,33 @@ export default function HistoryScreen({ navigation }: Readonly<Props>) {
                   </Text>
                 </Pressable>
               ))}
-            </ScrollView>
-          )}
-
-          {history.resultadosFiltrados.length > 0 && (
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: getNotaColor(history.avg) }]}>
-                  {history.avg.toFixed(1)}
-                </Text>
-                <Text style={styles.summaryLabel}>Media</Text>
-              </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: '#06B6D4' }]}>{history.best.toFixed(1)}</Text>
-                <Text style={styles.summaryLabel}>Mejor</Text>
-              </View>
-              <View style={styles.summaryDivider} />
-              <View style={styles.summaryItem}>
-                <Text style={[styles.summaryValue, { color: '#F59E0B' }]}>{history.totalEstrellas}⭐</Text>
-                <Text style={styles.summaryLabel}>Estrellas</Text>
-              </View>
-            </View>
+            </HorizontalScroll>
           )}
 
           <FlatList
             data={history.resultadosFiltrados}
             keyExtractor={(_, i) => String(i)}
             contentContainerStyle={styles.list}
+            ListHeaderComponent={history.resultadosFiltrados.length > 0 ? (
+              <View style={styles.summaryRow}>
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryValue, { color: getNotaColor(history.avg) }]}>
+                    {history.avg.toFixed(1)}
+                  </Text>
+                  <Text style={styles.summaryLabel}>Media</Text>
+                </View>
+                <View style={styles.summaryDivider} />
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryValue, { color: '#06B6D4' }]}>{history.best.toFixed(1)}</Text>
+                  <Text style={styles.summaryLabel}>Mejor</Text>
+                </View>
+                <View style={styles.summaryDivider} />
+                <View style={styles.summaryItem}>
+                  <Text style={[styles.summaryValue, { color: '#F59E0B' }]}>{history.totalEstrellas}⭐</Text>
+                  <Text style={styles.summaryLabel}>Estrellas</Text>
+                </View>
+              </View>
+            ) : null}
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Text style={styles.emptyEmoji}>📭</Text>
@@ -348,8 +382,8 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     backgroundColor: '#1A1A2E',
-    borderBottomWidth: 1,
-    borderBottomColor: '#2D2D44',
+    borderRadius: 16,
+    marginBottom: 4,
   },
   summaryItem: { alignItems: 'center' },
   summaryValue: { fontSize: 22, fontWeight: '800' },
@@ -388,7 +422,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   attemptText: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
-  filterBar: { maxHeight: 52, borderBottomWidth: 1, borderBottomColor: '#2D2D44' },
+  filterBar: { borderBottomWidth: 1, borderBottomColor: '#2D2D44' },
   filterBarContent: { paddingHorizontal: 16, paddingVertical: 10, gap: 8, flexDirection: 'row' },
   filterChip: {
     paddingHorizontal: 14,

@@ -63,8 +63,8 @@ export function useUsersScreen(currentUserId: number | undefined) {
     }, [loadUsuarios]),
   );
 
-  const usuariosActivos = useMemo(() => usuarios.filter((u) => u.activo === true), [usuarios]);
-  const usuariosInactivos = useMemo(() => usuarios.filter((u) => u.activo !== true), [usuarios]);
+  const usuariosActivos = useMemo(() => usuarios.filter((u) => u.activo !== false), [usuarios]);
+  const usuariosInactivos = useMemo(() => usuarios.filter((u) => u.activo === false), [usuarios]);
 
   const openUserDetail = async (u: UsuarioDTO) => {
     setSelectedUser(u);
@@ -114,7 +114,10 @@ export function useUsersScreen(currentUserId: number | undefined) {
         onPress: async () => {
           try {
             await deleteUsuarioUseCase.execute(u.id_usuario);
-            await loadUsuarios();
+            setUsuarios((prev) =>
+              prev.map((x) => x.id_usuario === u.id_usuario ? { ...x, activo: false } : x),
+            );
+            loadUsuarios();
           } catch {
             showAlert('Error', 'No se pudo desactivar el usuario');
           }
@@ -131,7 +134,10 @@ export function useUsersScreen(currentUserId: number | undefined) {
         onPress: async () => {
           try {
             await activarUsuarioUseCase.execute(u.id_usuario, u);
-            await loadUsuarios();
+            setUsuarios((prev) =>
+              prev.map((x) => x.id_usuario === u.id_usuario ? { ...x, activo: true } : x),
+            );
+            loadUsuarios();
           } catch {
             showAlert('Error', 'No se pudo activar el usuario');
           }

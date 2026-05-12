@@ -76,8 +76,8 @@ export default function ResultScreen({ navigation, route }: Props) {
           <Text style={[styles.gradeLabel, { color: grade.color }]}>{grade.label}</Text>
 
           <View style={styles.starsRow}>
-            {[1, 2, 3].map((i) => (
-              <Text key={i} style={[styles.star, i <= stars ? styles.starFilled : styles.starEmpty]}>★</Text>
+            {[1, 2, 3].map((star) => (
+              <Text key={star} style={[styles.star, star <= stars ? styles.starFilled : styles.starEmpty]}>★</Text>
             ))}
           </View>
 
@@ -140,7 +140,7 @@ export default function ResultScreen({ navigation, route }: Props) {
             <Text style={styles.sectionTitle}>Detalle por pregunta</Text>
             {resultado.detalle.map((d, i) => (
               <View
-                key={`detalle-${d.pregunta_id}-${i}`}
+                key={`detalle-${d.pregunta_id}`}
                 style={[styles.detailCard, d.es_correcta ? styles.detailCorrect : styles.detailWrong]}
               >
                 <View style={styles.detailHeader}>

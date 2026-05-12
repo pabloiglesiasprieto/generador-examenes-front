@@ -55,7 +55,7 @@ function DetalleModal({
         <ScrollView contentContainerStyle={modalStyles.body} showsVerticalScrollIndicator={false}>
             {resultado.detalle.map((d, i) => (
               <View
-                key={`d-${d.pregunta_id}-${i}`}
+                key={`d-${d.pregunta_id}`}
                 style={[modalStyles.card, d.es_correcta ? modalStyles.cardCorrect : modalStyles.cardWrong]}
               >
                 <View style={modalStyles.cardHeader}>
@@ -174,8 +174,8 @@ function HistoryCard({
           </View>
 
           <View style={styles.starsRow}>
-            {[1, 2, 3].map((i) => (
-              <Text key={i} style={[styles.star, i <= stars ? styles.starOn : styles.starOff]}>★</Text>
+            {[1, 2, 3].map((star) => (
+              <Text key={star} style={[styles.star, star <= stars ? styles.starOn : styles.starOff]}>★</Text>
             ))}
             <Text style={styles.outOf}>/10</Text>
           </View>

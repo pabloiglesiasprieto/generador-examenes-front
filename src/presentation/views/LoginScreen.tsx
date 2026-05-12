@@ -32,10 +32,23 @@ const isWeb = Platform.OS === 'web';
  * @returns Array de valores animados de opacidad y traslación vertical.
  */
 function useLoginAnimations() {
-  const items = Array.from({ length: 5 }, () => ({
-    opacity: useRef(new Animated.Value(0)).current,
-    translateY: useRef(new Animated.Value(16)).current,
-  }));
+  const a0 = useRef(new Animated.Value(0));
+  const a1 = useRef(new Animated.Value(0));
+  const a2 = useRef(new Animated.Value(0));
+  const a3 = useRef(new Animated.Value(0));
+  const a4 = useRef(new Animated.Value(0));
+  const t0 = useRef(new Animated.Value(16));
+  const t1 = useRef(new Animated.Value(16));
+  const t2 = useRef(new Animated.Value(16));
+  const t3 = useRef(new Animated.Value(16));
+  const t4 = useRef(new Animated.Value(16));
+  const items = [
+    { opacity: a0.current, translateY: t0.current },
+    { opacity: a1.current, translateY: t1.current },
+    { opacity: a2.current, translateY: t2.current },
+    { opacity: a3.current, translateY: t3.current },
+    { opacity: a4.current, translateY: t4.current },
+  ];
 
   useEffect(() => {
     const anims = items.map(({ opacity, translateY }) =>

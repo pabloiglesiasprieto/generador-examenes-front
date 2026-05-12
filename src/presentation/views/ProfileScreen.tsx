@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,58 @@ import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
+type ProfileState = {
+  usuario: UsuarioDTO | null;
+  resultados: ResultadoDTO[];
+  loading: boolean;
+  showLogoutModal: boolean;
+  showEditModal: boolean;
+  editNombre: string;
+  editApellido: string;
+  saving: boolean;
+};
+
+type ProfileAction =
+  | { type: 'FETCH_START' }
+  | { type: 'FETCH_SUCCESS'; usuario: UsuarioDTO | null; resultados: ResultadoDTO[] }
+  | { type: 'OPEN_EDIT'; nombre: string; apellido: string }
+  | { type: 'CLOSE_EDIT' }
+  | { type: 'SET_EDIT_NOMBRE'; value: string }
+  | { type: 'SET_EDIT_APELLIDO'; value: string }
+  | { type: 'SAVE_START' }
+  | { type: 'SAVE_SUCCESS'; usuario: UsuarioDTO }
+  | { type: 'SAVE_FAIL' }
+  | { type: 'OPEN_LOGOUT' }
+  | { type: 'CLOSE_LOGOUT' };
+
+const initialProfileState: ProfileState = {
+  usuario: null,
+  resultados: [],
+  loading: true,
+  showLogoutModal: false,
+  showEditModal: false,
+  editNombre: '',
+  editApellido: '',
+  saving: false,
+};
+
+function profileReducer(state: ProfileState, action: ProfileAction): ProfileState {
+  switch (action.type) {
+    case 'FETCH_START': return { ...state, loading: true };
+    case 'FETCH_SUCCESS': return { ...state, loading: false, usuario: action.usuario, resultados: action.resultados };
+    case 'OPEN_EDIT': return { ...state, showEditModal: true, editNombre: action.nombre, editApellido: action.apellido };
+    case 'CLOSE_EDIT': return { ...state, showEditModal: false };
+    case 'SET_EDIT_NOMBRE': return { ...state, editNombre: action.value };
+    case 'SET_EDIT_APELLIDO': return { ...state, editApellido: action.value };
+    case 'SAVE_START': return { ...state, saving: true };
+    case 'SAVE_SUCCESS': return { ...state, saving: false, showEditModal: false, usuario: action.usuario };
+    case 'SAVE_FAIL': return { ...state, saving: false };
+    case 'OPEN_LOGOUT': return { ...state, showLogoutModal: true };
+    case 'CLOSE_LOGOUT': return { ...state, showLogoutModal: false };
+    default: return state;
+  }
+}
+
 /**
  * Pantalla de perfil del usuario autenticado.
  * Muestra el avatar, nombre, correo, rol y estadísticas del alumno (nota media,
@@ -42,14 +94,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 export default function ProfileScreen({ navigation }: Props) {
   const { user, signOut, isAdmin, isProfesor, isAlumno } = useAuth();
   const { showAlert } = useAlert();
-  const [usuario, setUsuario] = useState<UsuarioDTO | null>(null);
-  const [resultados, setResultados] = useState<ResultadoDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editNombre, setEditNombre] = useState('');
-  const [editApellido, setEditApellido] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [{ usuario, resultados, loading, showLogoutModal, showEditModal, editNombre, editApellido, saving }, dispatch] = useReducer(profileReducer, initialProfileState);
 
   const getUsuarioByIdUseCase = useMemo(() => container.get<IGetUsuarioByIdUseCase>(TYPES.IGetUsuarioByIdUseCase), []);
   const getResultadosAlumnoUseCase = useMemo(() => container.get<IGetResultadosAlumnoUseCase>(TYPES.IGetResultadosAlumnoUseCase), []);
@@ -59,16 +104,13 @@ export default function ProfileScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
-      setLoading(true);
+      dispatch({ type: 'FETCH_START' });
       Promise.all([
         getUsuarioByIdUseCase.execute(user.id).catch(() => null),
         isAlumno ? getResultadosAlumnoUseCase.execute(user.id).catch(() => []) : Promise.resolve([]),
-      ])
-        .then(([u, r]) => {
-          if (u) setUsuario(u as UsuarioDTO);
-          setResultados(r as ResultadoDTO[]);
-        })
-        .finally(() => setLoading(false));
+      ]).then(([u, r]) => {
+        dispatch({ type: 'FETCH_SUCCESS', usuario: (u as UsuarioDTO) ?? null, resultados: r as ResultadoDTO[] });
+      });
     }, [user, isAlumno]),
   );
 
@@ -108,26 +150,22 @@ export default function ProfileScreen({ navigation }: Props) {
   }, [loading, xpPct]);
 
   const openEdit = () => {
-    setEditNombre(usuario?.nombre_usuario ?? '');
-    setEditApellido(usuario?.apellido_usuario ?? '');
-    setShowEditModal(true);
+    dispatch({ type: 'OPEN_EDIT', nombre: usuario?.nombre_usuario ?? '', apellido: usuario?.apellido_usuario ?? '' });
   };
 
   const handleSaveProfile = async () => {
     if (!editNombre.trim() || !editApellido.trim() || !user || !usuario) return;
-    setSaving(true);
+    dispatch({ type: 'SAVE_START' });
     try {
       const updated = await updateUsuarioUseCase.execute(user.id, {
         nombre_usuario: editNombre.trim(),
         apellido_usuario: editApellido.trim(),
         correo_usuario: usuario.correo_usuario,
       });
-      setUsuario(updated);
-      setShowEditModal(false);
+      dispatch({ type: 'SAVE_SUCCESS', usuario: updated });
     } catch {
       showAlert('Error', 'No se pudo guardar el perfil. Inténtalo de nuevo.');
-    } finally {
-      setSaving(false);
+      dispatch({ type: 'SAVE_FAIL' });
     }
   };
 
@@ -298,7 +336,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
       <TouchableOpacity
         style={styles.logoutBtn}
-        onPress={() => setShowLogoutModal(true)}
+        onPress={() => dispatch({ type: 'OPEN_LOGOUT' })}
       >
         <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>
@@ -307,7 +345,7 @@ export default function ProfileScreen({ navigation }: Props) {
         visible={showEditModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowEditModal(false)}
+        onRequestClose={() => dispatch({ type: 'CLOSE_EDIT' })}
       >
         <KeyboardAvoidingView
           style={styles.modalOverlay}
@@ -320,7 +358,7 @@ export default function ProfileScreen({ navigation }: Props) {
               <TextInput
                 style={styles.editInput}
                 value={editNombre}
-                onChangeText={setEditNombre}
+                onChangeText={(value) => dispatch({ type: 'SET_EDIT_NOMBRE', value })}
                 placeholderTextColor="#555"
                 placeholder="Nombre"
               />
@@ -330,7 +368,7 @@ export default function ProfileScreen({ navigation }: Props) {
               <TextInput
                 style={styles.editInput}
                 value={editApellido}
-                onChangeText={setEditApellido}
+                onChangeText={(value) => dispatch({ type: 'SET_EDIT_APELLIDO', value })}
                 placeholderTextColor="#555"
                 placeholder="Apellidos"
               />
@@ -338,7 +376,7 @@ export default function ProfileScreen({ navigation }: Props) {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalCancelBtn}
-                onPress={() => setShowEditModal(false)}
+                onPress={() => dispatch({ type: 'CLOSE_EDIT' })}
               >
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
@@ -362,7 +400,7 @@ export default function ProfileScreen({ navigation }: Props) {
         visible={showLogoutModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowLogoutModal(false)}
+        onRequestClose={() => dispatch({ type: 'CLOSE_LOGOUT' })}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
@@ -371,14 +409,14 @@ export default function ProfileScreen({ navigation }: Props) {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalCancelBtn}
-                onPress={() => setShowLogoutModal(false)}
+                onPress={() => dispatch({ type: 'CLOSE_LOGOUT' })}
               >
                 <Text style={styles.modalCancelText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalConfirmBtn}
                 onPress={() => {
-                  setShowLogoutModal(false);
+                  dispatch({ type: 'CLOSE_LOGOUT' });
                   void signOut();
                 }}
               >

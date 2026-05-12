@@ -148,7 +148,7 @@ export default function DashboardScreen({ navigation }: Props) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#7C3AED" />
-        <Text style={styles.loadingText}>Cargando estadísticas...</Text>
+        <Text style={styles.loadingText}>Cargando estadísticas…</Text>
       </View>
     );
   }

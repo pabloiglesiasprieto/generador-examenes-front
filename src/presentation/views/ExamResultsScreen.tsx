@@ -40,7 +40,7 @@ function formatTime(seconds?: number): string {
  * @returns Vista con tabla de resultados, o indicadores de carga, error o lista vacía.
  */
 export default function ExamResultsScreen() {
-  const navigation = useNavigation<ExamResultsNav>();
+  const { goBack } = useNavigation<ExamResultsNav>();
   const route = useRoute<ExamResultsRoute>();
   const { examenId } = route.params;
 
@@ -64,7 +64,7 @@ export default function ExamResultsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+        <TouchableOpacity onPress={goBack} style={styles.backBtn}>
           <Text style={styles.backText}>← Volver</Text>
         </TouchableOpacity>
         <Text style={styles.title}>Examen #{examenId}</Text>

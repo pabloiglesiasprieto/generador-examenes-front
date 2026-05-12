@@ -277,9 +277,7 @@ export function useQuestionsScreen() {
     setJsonErrors([]);
     setJsonImporting(true);
     try {
-      for (const pregunta of result.preguntas!) {
-        await createPreguntaUseCase.execute(pregunta);
-      }
+      await Promise.all(result.preguntas!.map((pregunta) => createPreguntaUseCase.execute(pregunta)));
       setModalVisible(false);
       resetJsonTab();
       setActiveTab('form');

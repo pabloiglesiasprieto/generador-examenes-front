@@ -212,7 +212,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
 
                 return (
                   <TouchableOpacity
-                    key={`${session.currentIndex}-resp-${i}`}
+                    key={`${session.currentIndex}-resp-${respId ?? i}`}
                     style={[
                       styles.answerCard,
                       !isAdminMode && selected && styles.answerCardSelected,

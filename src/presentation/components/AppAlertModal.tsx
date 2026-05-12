@@ -44,9 +44,9 @@ export function AppAlertModal() {
                 <Text style={styles.btnCancelText}>{cancelBtn.text}</Text>
               </TouchableOpacity>
             )}
-            {actionBtns.map((btn, i) => (
+            {actionBtns.map((btn) => (
               <TouchableOpacity
-                key={i}
+                key={btn.text}
                 style={[
                   styles.btn,
                   btn.style === 'destructive' ? styles.btnDestructive : styles.btnPrimary,

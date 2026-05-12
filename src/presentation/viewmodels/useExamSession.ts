@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useReducer, useRef } from 'react';
 import { useAlert } from './AlertContext';
 import { container } from '../../infrastructure/config/container';
 import { TYPES } from '../../infrastructure/config/types';
@@ -6,7 +6,15 @@ import { IEvaluarExamenUseCase } from '../../domain/interfaces/useCases/examenes
 import { ExamenDTO, RespuestaAlumnoDTO } from '../../domain/entities/Examen';
 
 /** Duración en segundos del temporizador fijo para alumnos (2 minutos). */
-const ALUMNO_TIMER_SECONDS = 120; // 2 minutos fijos para alumnos
+const ALUMNO_TIMER_SECONDS = 120;
+
+type TimerState = { timeRemaining: number | null; isExpired: boolean };
+
+function timerReducer(state: TimerState): TimerState {
+  if (state.timeRemaining == null || state.isExpired) return state;
+  if (state.timeRemaining <= 1) return { timeRemaining: 0, isExpired: true };
+  return { ...state, timeRemaining: state.timeRemaining - 1 };
+}
 
 /**
  * Construye la lista de respuestas del alumno en el formato requerido por la API.
@@ -18,9 +26,11 @@ const ALUMNO_TIMER_SECONDS = 120; // 2 minutos fijos para alumnos
 function buildRespuestasDTO(examen: ExamenDTO, answers: Map<number, Set<number>>): RespuestaAlumnoDTO[] {
   return (examen.preguntas ?? []).map((p, pIdx) => {
     const selectedIndices = answers.get(pIdx) ?? new Set<number>();
-    const respuesta_ids = Array.from(selectedIndices)
-      .map((rIdx) => p.respuestas[rIdx]?.id)
-      .filter((id): id is number => id != null);
+    const respuesta_ids = Array.from(selectedIndices).reduce<number[]>((acc, rIdx) => {
+      const id = p.respuestas[rIdx]?.id;
+      if (id != null) acc.push(id);
+      return acc;
+    }, []);
     return { pregunta_id: p.id, respuesta_ids };
   });
 }
@@ -71,28 +81,17 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<number, Set<number>>>(() => new Map());
   const [submitting, setSubmitting] = useState(false);
-  // Admin no tiene timer; alumno tiene 2 minutos fijos
-  const [timeRemaining, setTimeRemaining] = useState<number | null>(() =>
-    isAdminMode ? null : ALUMNO_TIMER_SECONDS,
-  );
-  const [isExpired, setIsExpired] = useState(false);
+  const [{ timeRemaining, isExpired }, tickTimer] = useReducer(timerReducer, {
+    timeRemaining: isAdminMode ? null : ALUMNO_TIMER_SECONDS,
+    isExpired: false,
+  });
   const autoSubmitRef = useRef<((cb: (resultado: unknown, examenId: number) => void) => void) | null>(null);
 
   const evaluarExamenUseCase = useMemo(() => container.get<IEvaluarExamenUseCase>(TYPES.IEvaluarExamenUseCase), []);
 
-  // Countdown timer (solo para alumnos) — un único interval durante toda la sesión
   useEffect(() => {
     if (isReadOnly) return;
-    const interval = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev == null || prev <= 1) {
-          setIsExpired(true);
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const interval = setInterval(tickTimer, 1000);
     return () => clearInterval(interval);
   }, [isReadOnly]);
 

@@ -348,8 +348,8 @@ export default function MapScreen({ navigation }: Props) {
             </View>
           </View>
 
-          {filteredNodes.map((info, index) => (
-            <View key={`exam-${info.examen.id}-${index}`}>
+          {filteredNodes.map((info) => (
+            <View key={`exam-${info.examen.id}`}>
               <View style={styles.pathLine} />
               <ExamNode
                 info={info}

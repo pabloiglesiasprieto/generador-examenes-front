@@ -129,6 +129,12 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
     }
   };
 
+  const goPrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((i) => i - 1);
+    }
+  };
+
   const submitAnswers = useCallback(async (onSuccess: (resultado: unknown, examenId: number) => void) => {
     setSubmitting(true);
     try {
@@ -156,6 +162,7 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
     isExpired,
     toggleAnswer,
     goNext,
+    goPrev,
     submitAnswers,
   };
 }

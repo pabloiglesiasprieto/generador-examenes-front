@@ -43,37 +43,58 @@ function ExamFooterButton({
   onSubmit: () => void;
   onClose: () => void;
 }>) {
+  const isFirst = session.currentIndex === 0;
+
   if (isAdminMode) {
     return (
-      <Pressable style={[styles.btn, styles.btnClose]} onPress={onClose}>
-        <Text style={styles.btnText}>{session.isLast ? 'Cerrar' : 'Siguiente →'}</Text>
-      </Pressable>
+      <View style={styles.footerRow}>
+        <Pressable
+          style={[styles.btnPrev, isFirst && styles.btnPrevHidden]}
+          onPress={session.goPrev}
+          disabled={isFirst}
+        >
+          <Text style={styles.btnPrevText}>← Anterior</Text>
+        </Pressable>
+        <Pressable style={[styles.btn, styles.btnClose]} onPress={onClose}>
+          <Text style={styles.btnText}>{session.isLast ? 'Cerrar' : 'Siguiente →'}</Text>
+        </Pressable>
+      </View>
     );
   }
 
   if (session.isLast) {
     return (
-      <Pressable
-        style={[styles.btn, styles.btnSubmit, session.submitting && styles.btnDisabled]}
-        onPress={onSubmit}
-        disabled={session.submitting}
-      >
-        {session.submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.btnText}>Enviar examen 🚀</Text>
-        )}
-      </Pressable>
+      <View style={styles.footerRow}>
+        <Pressable style={[styles.btnPrev, isFirst && styles.btnPrevHidden]} onPress={session.goPrev} disabled={isFirst}>
+          <Text style={styles.btnPrevText}>← Anterior</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.btn, styles.btnSubmit, session.submitting && styles.btnDisabled]}
+          onPress={onSubmit}
+          disabled={session.submitting}
+        >
+          {session.submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.btnText}>Enviar examen 🚀</Text>
+          )}
+        </Pressable>
+      </View>
     );
   }
 
   return (
-    <Pressable
-      style={[styles.btn, !session.hasAnswered && styles.btnMuted]}
-      onPress={session.goNext}
-    >
-      <Text style={styles.btnText}>Siguiente →</Text>
-    </Pressable>
+    <View style={styles.footerRow}>
+      <Pressable style={[styles.btnPrev, isFirst && styles.btnPrevHidden]} onPress={session.goPrev} disabled={isFirst}>
+        <Text style={styles.btnPrevText}>← Anterior</Text>
+      </Pressable>
+      <Pressable
+        style={[styles.btn, !session.hasAnswered && styles.btnMuted]}
+        onPress={session.goNext}
+      >
+        <Text style={styles.btnText}>Siguiente →</Text>
+      </Pressable>
+    </View>
   );
 }
 
@@ -464,6 +485,17 @@ const styles = StyleSheet.create({
   answerTextCorrect: { color: '#10B981', fontWeight: '600' },
   answerTextWrong: { color: '#4B5563', fontWeight: '400' },
   footer: { paddingHorizontal: 20, paddingBottom: 32, paddingTop: 12, backgroundColor: '#0D0D1A' },
+  footerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  btnPrev: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 16,
+    backgroundColor: '#1A1A2E',
+    borderWidth: 1,
+    borderColor: '#2D2D44',
+  },
+  btnPrevHidden: { opacity: 0, pointerEvents: 'none' },
+  btnPrevText: { color: '#94A3B8', fontSize: 14, fontWeight: '600' },
   btn: {
     backgroundColor: '#7C3AED',
     paddingVertical: 16,

@@ -497,6 +497,7 @@ const styles = StyleSheet.create({
   btnPrevHidden: { opacity: 0, pointerEvents: 'none' },
   btnPrevText: { color: '#94A3B8', fontSize: 14, fontWeight: '600' },
   btn: {
+    flex: 1,
     backgroundColor: '#7C3AED',
     paddingVertical: 16,
     borderRadius: 14,

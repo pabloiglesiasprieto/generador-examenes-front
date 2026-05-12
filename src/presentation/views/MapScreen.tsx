@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import HorizontalScroll from '../components/HorizontalScroll';
 import {
   View,
   Text,
@@ -263,9 +264,7 @@ export default function MapScreen({ navigation }: Props) {
 
       {/* Filtro por categoría */}
       {categorias.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
+        <HorizontalScroll
           style={styles.categoriaBar}
           contentContainerStyle={styles.categoriaBarContent}
         >
@@ -288,7 +287,7 @@ export default function MapScreen({ navigation }: Props) {
               </Text>
             </Pressable>
           ))}
-        </ScrollView>
+        </HorizontalScroll>
       )}
 
       {/* Progress bar for alumno */}

@@ -9,10 +9,8 @@ import {
   Animated,
   ScrollView,
   Modal,
-  Platform,
-  StyleProp,
-  ViewStyle,
 } from 'react-native';
+import HorizontalScroll from '../components/HorizontalScroll';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '../navigation/AppNavigator';
 import { useAuth } from '../viewmodels/AuthContext';
@@ -23,55 +21,6 @@ import { HEADER_TOP } from '../utils/responsive';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'History'>;
 
-function HorizontalScroll({
-  style,
-  contentContainerStyle,
-  children,
-}: Readonly<{ style?: StyleProp<ViewStyle>; contentContainerStyle?: StyleProp<ViewStyle>; children: React.ReactNode }>) {
-  const wrapperRef = useRef<View>(null);
-  const scrollRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-    const wrapper = wrapperRef.current as unknown as HTMLElement | null;
-    if (!wrapper) return;
-
-    let cachedEl: HTMLElement | null = null;
-    const getScrollable = (): HTMLElement | null => {
-      if (cachedEl) return cachedEl;
-      cachedEl = (scrollRef.current as any)?.getScrollableNode?.() ?? null;
-      if (!cachedEl) {
-        cachedEl = Array.from(wrapper.querySelectorAll<HTMLElement>('*'))
-          .find(el => el.scrollWidth > el.clientWidth) ?? null;
-      }
-      return cachedEl;
-    };
-
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      const el = getScrollable();
-      if (!el) return;
-      e.preventDefault();
-      el.scrollLeft += e.deltaY;
-    };
-
-    wrapper.addEventListener('wheel', onWheel, { passive: false });
-    return () => wrapper.removeEventListener('wheel', onWheel);
-  }, []);
-
-  return (
-    <View ref={wrapperRef} style={style}>
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={contentContainerStyle}
-      >
-        {children}
-      </ScrollView>
-    </View>
-  );
-}
 
 /**
  * Modal de detalle de un intento de examen.

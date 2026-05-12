@@ -6,6 +6,8 @@ import {
   FlatList,
   ActivityIndicator,
   Pressable,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -19,12 +21,6 @@ import { HEADER_TOP } from '../utils/responsive';
 type ExamResultsRoute = RouteProp<AdminStackParamList, 'ExamResults'>;
 type ExamResultsNav = NativeStackNavigationProp<AdminStackParamList, 'ExamResults'>;
 
-/**
- * Formatea un número de segundos en formato mm:ss.
- *
- * @param seconds - Número de segundos a formatear, o undefined si no hay datos.
- * @returns Cadena en formato "m:ss", o "—" si el valor es undefined.
- */
 function formatTime(seconds?: number): string {
   if (seconds == null) return '—';
   const m = Math.floor(seconds / 60);
@@ -32,13 +28,98 @@ function formatTime(seconds?: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-/**
- * Pantalla de historial de resultados de un examen concreto para administradores.
- * Carga los resultados del examen indicado en los parámetros de ruta y los muestra
- * en una tabla con columnas de alumno, intento, nota y tiempo empleado.
- *
- * @returns Vista con tabla de resultados, o indicadores de carga, error o lista vacía.
- */
+function getNotaColor(nota: number | null | undefined): string {
+  if (nota == null) return '#64748B';
+  if (nota >= 9) return '#10B981';
+  if (nota >= 7) return '#06B6D4';
+  if (nota >= 5) return '#F59E0B';
+  return '#EF4444';
+}
+
+function DetalleModal({
+  resultado,
+  onClose,
+}: Readonly<{ resultado: ResultadoDTO | null; onClose: () => void }>) {
+  return (
+    <Modal visible={!!resultado} animationType="slide" onRequestClose={onClose}>
+      {resultado && (
+        <View style={modalStyles.container}>
+          <View style={modalStyles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={modalStyles.headerTitle}>
+                {resultado.nombre_usuario ?? `Alumno #${resultado.usuario_id}`}
+              </Text>
+              <Text style={modalStyles.headerSub}>
+                Intento #{resultado.intento} · {resultado.nota == null ? '—' : resultado.nota.toFixed(1)}/10 · {formatTime(resultado.tiempo_segundos)}
+              </Text>
+            </View>
+            <Pressable style={modalStyles.closeBtn} onPress={onClose}>
+              <Text style={modalStyles.closeText}>✕</Text>
+            </Pressable>
+          </View>
+
+          <ScrollView contentContainerStyle={modalStyles.body} showsVerticalScrollIndicator={false}>
+            {resultado.detalle.map((d, i) => (
+              <View
+                key={`d-${d.pregunta_id}`}
+                style={[modalStyles.card, d.es_correcta ? modalStyles.cardCorrect : modalStyles.cardWrong]}
+              >
+                <View style={modalStyles.cardHeader}>
+                  <View style={modalStyles.indexBadge}>
+                    <Text style={modalStyles.indexText}>#{i + 1}</Text>
+                  </View>
+                  <View
+                    style={[
+                      modalStyles.resultBadge,
+                      { backgroundColor: d.es_correcta ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)' },
+                    ]}
+                  >
+                    <Text style={d.es_correcta ? modalStyles.correctText : modalStyles.wrongText}>
+                      {d.es_correcta ? '✓ Correcta' : '✗ Incorrecta'}
+                    </Text>
+                  </View>
+                </View>
+
+                <Text style={modalStyles.enunciado}>{d.enunciado}</Text>
+
+                <View style={modalStyles.respBlock}>
+                  <Text style={modalStyles.respLabel}>Respuesta del alumno</Text>
+                  {d.textos_enviados.length === 0 ? (
+                    <Text style={modalStyles.respNone}>Sin respuesta</Text>
+                  ) : (
+                    d.textos_enviados.map((texto) => (
+                      <View
+                        key={texto}
+                        style={[modalStyles.respRow, d.es_correcta ? modalStyles.respRowCorrect : modalStyles.respRowWrong]}
+                      >
+                        <Text style={[modalStyles.respIcon, { color: d.es_correcta ? '#10B981' : '#EF4444' }]}>●</Text>
+                        <Text style={modalStyles.respText}>{texto}</Text>
+                      </View>
+                    ))
+                  )}
+                </View>
+
+                {!d.es_correcta && (
+                  <View style={modalStyles.respBlock}>
+                    <Text style={modalStyles.respLabel}>Respuesta correcta</Text>
+                    {d.textos_correctos.map((texto) => (
+                      <View key={texto} style={modalStyles.respRowCorrect}>
+                        <Text style={[modalStyles.respIcon, { color: '#10B981' }]}>●</Text>
+                        <Text style={modalStyles.respText}>{texto}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+            <View style={{ height: 40 }} />
+          </ScrollView>
+        </View>
+      )}
+    </Modal>
+  );
+}
+
 export default function ExamResultsScreen() {
   const { goBack } = useNavigation<ExamResultsNav>();
   const route = useRoute<ExamResultsRoute>();
@@ -47,6 +128,7 @@ export default function ExamResultsScreen() {
   const [results, setResults] = useState<ResultadoDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selected, setSelected] = useState<ResultadoDTO | null>(null);
 
   const getResultadosUseCase = useMemo(
     () => container.get<IGetResultadosExamenUseCase>(TYPES.IGetResultadosExamenUseCase),
@@ -63,36 +145,45 @@ export default function ExamResultsScreen() {
 
   const renderItem = useCallback(({ item }: { item: ResultadoDTO }) => {
     const nota = item.nota ?? null;
-    const notaColor =
-      nota == null
-        ? '#64748B'
-        : nota >= 9
-        ? '#10B981'
-        : nota >= 7
-        ? '#06B6D4'
-        : nota >= 5
-        ? '#F59E0B'
-        : '#EF4444';
+    const notaColor = getNotaColor(nota);
     return (
-      <View style={styles.row}>
-        <Text style={[styles.col, styles.colUsuario, styles.cellText]}>
-          #{item.usuario_id ?? '—'}{item.nombre_usuario ? ` · ${item.nombre_usuario}` : ''}
-        </Text>
-        <Text style={[styles.col, styles.colIntento, styles.cellText]}>
-          {item.intento}
-        </Text>
-        <Text style={[styles.col, styles.colNota, { color: notaColor, fontWeight: '700' }]}>
-          {nota != null ? nota.toFixed(1) : '—'}
-        </Text>
-        <Text style={[styles.col, styles.colTiempo, styles.cellText]}>
-          {formatTime(item.tiempo_segundos)}
-        </Text>
-      </View>
+      <Pressable onPress={() => setSelected(item)} style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}>
+        <View style={[styles.cardAccent, { backgroundColor: notaColor }]} />
+        <View style={styles.cardBody}>
+          <View style={styles.cardTop}>
+            <View style={styles.cardLeft}>
+              <Text style={styles.cardUser}>
+                {item.nombre_usuario ?? `Alumno #${item.usuario_id}`}
+              </Text>
+              <View style={styles.attemptBadge}>
+                <Text style={styles.attemptText}>Intento #{item.intento}</Text>
+              </View>
+            </View>
+            <View style={styles.cardRight}>
+              <Text style={[styles.cardNota, { color: notaColor }]}>
+                {nota != null ? nota.toFixed(1) : '—'}
+              </Text>
+              <Text style={styles.cardNotaLabel}>/10</Text>
+            </View>
+          </View>
+          <View style={styles.cardFooter}>
+            <Text style={styles.cardTime}>⏱ {formatTime(item.tiempo_segundos)}</Text>
+            <Text style={styles.cardStats}>
+              <Text style={{ color: '#10B981' }}>{item.preguntas_correctas}✓</Text>
+              {'  '}
+              <Text style={{ color: '#EF4444' }}>{item.total_preguntas - item.preguntas_correctas}✗</Text>
+            </Text>
+            <Text style={styles.cardChevron}>›</Text>
+          </View>
+        </View>
+      </Pressable>
     );
   }, []);
 
   return (
     <View style={styles.container}>
+      <DetalleModal resultado={selected} onClose={() => setSelected(null)} />
+
       <View style={styles.header}>
         <Pressable onPress={goBack} style={styles.backBtn}>
           <Text style={styles.backText}>← Volver</Text>
@@ -114,21 +205,12 @@ export default function ExamResultsScreen() {
           <Text style={styles.emptyText}>Aún no hay resultados para este examen</Text>
         </View>
       ) : (
-        <>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.col, styles.colUsuario, styles.colHeaderText]}>Alumno</Text>
-            <Text style={[styles.col, styles.colIntento, styles.colHeaderText]}>Intento</Text>
-            <Text style={[styles.col, styles.colNota, styles.colHeaderText]}>Nota</Text>
-            <Text style={[styles.col, styles.colTiempo, styles.colHeaderText]}>Tiempo</Text>
-          </View>
-
-          <FlatList
-            data={results}
-            keyExtractor={(_, i) => String(i)}
-            contentContainerStyle={{ paddingBottom: 40 }}
-            renderItem={renderItem}
-          />
-        </>
+        <FlatList
+          data={results}
+          keyExtractor={(_, i) => String(i)}
+          contentContainerStyle={styles.list}
+          renderItem={renderItem}
+        />
       )}
     </View>
   );
@@ -151,26 +233,118 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   errorText: { color: '#EF4444', fontSize: 14, textAlign: 'center' },
   emptyText: { color: '#94A3B8', fontSize: 15, textAlign: 'center' },
-  tableHeader: {
+  list: { padding: 16, gap: 12 },
+  card: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
     backgroundColor: '#1A1A2E',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#2D2D44',
+    overflow: 'hidden',
+  },
+  cardPressed: { opacity: 0.75 },
+  cardAccent: { width: 5 },
+  cardBody: { flex: 1, padding: 14 },
+  cardTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  cardLeft: { flex: 1, gap: 6 },
+  cardUser: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  attemptBadge: {
+    backgroundColor: '#2D2D44',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  attemptText: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
+  cardRight: { alignItems: 'flex-end', flexDirection: 'row', gap: 2, alignSelf: 'flex-start' },
+  cardNota: { fontSize: 28, fontWeight: '800' },
+  cardNotaLabel: { color: '#64748B', fontSize: 14, alignSelf: 'flex-end', marginBottom: 4 },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#2D2D44',
+  },
+  cardTime: { color: '#94A3B8', fontSize: 13 },
+  cardStats: { fontSize: 13 },
+  cardChevron: { color: '#7C3AED', fontSize: 22, fontWeight: '700' },
+});
+
+const modalStyles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#0D0D1A' },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    paddingTop: HEADER_TOP,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#2D2D44',
+    backgroundColor: '#1A1A2E',
   },
-  row: {
+  headerTitle: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
+  headerSub: { fontSize: 13, color: '#94A3B8', marginTop: 2 },
+  closeBtn: {
+    backgroundColor: '#2D2D44',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  closeText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  body: { padding: 16, gap: 14 },
+  card: { borderRadius: 16, padding: 16, borderLeftWidth: 4 },
+  cardCorrect: { backgroundColor: 'rgba(16,185,129,0.08)', borderLeftColor: '#10B981' },
+  cardWrong: { backgroundColor: 'rgba(239,68,68,0.08)', borderLeftColor: '#EF4444' },
+  cardHeader: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1A1A2E',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  col: { fontSize: 13 },
-  colUsuario: { flex: 2 },
-  colIntento: { flex: 1, textAlign: 'center' },
-  colNota: { flex: 1, textAlign: 'center' },
-  colTiempo: { flex: 1.5, textAlign: 'right' },
-  colHeaderText: { color: '#64748B', fontWeight: '700', fontSize: 12, textTransform: 'uppercase' },
-  cellText: { color: '#FFFFFF' },
+  indexBadge: { backgroundColor: '#2D2D44', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  indexText: { color: '#94A3B8', fontSize: 12, fontWeight: '700' },
+  resultBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  correctText: { color: '#10B981', fontSize: 12, fontWeight: '700' },
+  wrongText: { color: '#EF4444', fontSize: 12, fontWeight: '700' },
+  enunciado: { color: '#FFFFFF', fontSize: 15, lineHeight: 22, marginBottom: 12 },
+  respBlock: { marginTop: 8, gap: 6 },
+  respLabel: { color: '#64748B', fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 4 },
+  respNone: { color: '#475569', fontSize: 13, fontStyle: 'italic' },
+  respRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#1A1A2E',
+    borderRadius: 8,
+    padding: 10,
+  },
+  respRowCorrect: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(16,185,129,0.08)',
+    borderRadius: 8,
+    padding: 10,
+  },
+  respRowWrong: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: 'rgba(239,68,68,0.08)',
+    borderRadius: 8,
+    padding: 10,
+  },
+  respIcon: { fontSize: 10, marginTop: 4 },
+  respText: { flex: 1, color: '#E2E8F0', fontSize: 14, lineHeight: 20 },
 });

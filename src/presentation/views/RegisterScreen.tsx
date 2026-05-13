@@ -20,15 +20,18 @@ import { useAlert } from '../viewmodels/AlertContext';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
-/**
- * Pantalla de registro de nuevos usuarios.
- * Recoge nombre, apellidos, correo y contraseña, valida los datos localmente
- * (campos obligatorios, coincidencia de contraseñas y requisitos mínimos de seguridad)
- * y crea la cuenta mediante el caso de uso de registro.
- *
- * @param props.navigation - Objeto de navegación del stack de autenticación.
- * @returns Vista de formulario de registro con validación y botón de creación de cuenta.
- */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const NAME_REGEX = /^[a-zA-ZÀ-ÿ\s'-]+$/;
+const SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>]/;
+
+type FormErrors = {
+  nombre?: string;
+  apellido?: string;
+  correo?: string;
+  password?: string;
+  confirm?: string;
+};
+
 export default function RegisterScreen({ navigation }: Props) {
   const [form, setForm] = useState({
     nombre: '',
@@ -37,29 +40,62 @@ export default function RegisterScreen({ navigation }: Props) {
     password: '',
     confirm: '',
   });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const { showAlert } = useAlert();
 
   const registerUseCase = useMemo(() => container.get<IRegisterUseCase>(TYPES.IRegisterUseCase), []);
 
-  const set = (key: keyof typeof form) => (value: string) =>
+  const set = (key: keyof typeof form) => (value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const validate = (): boolean => {
+    const { nombre, apellido, correo, password, confirm } = form;
+    const newErrors: FormErrors = {};
+
+    if (!nombre.trim()) {
+      newErrors.nombre = 'El nombre es obligatorio';
+    } else if (!NAME_REGEX.test(nombre.trim())) {
+      newErrors.nombre = 'El nombre solo puede contener letras';
+    }
+
+    if (!apellido.trim()) {
+      newErrors.apellido = 'Los apellidos son obligatorios';
+    } else if (!NAME_REGEX.test(apellido.trim())) {
+      newErrors.apellido = 'Los apellidos solo pueden contener letras';
+    }
+
+    if (!correo.trim()) {
+      newErrors.correo = 'El correo es obligatorio';
+    } else if (!EMAIL_REGEX.test(correo.trim())) {
+      newErrors.correo = 'Introduce un correo electrónico válido';
+    }
+
+    if (!password) {
+      newErrors.password = 'La contraseña es obligatoria';
+    } else if (password.length < 8) {
+      newErrors.password = 'Mínimo 8 caracteres';
+    } else if (!SPECIAL_CHAR_REGEX.test(password)) {
+      newErrors.password = 'Debe incluir al menos un carácter especial (!@#$%...)';
+    }
+
+    if (!confirm) {
+      newErrors.confirm = 'Confirma tu contraseña';
+    } else if (password !== confirm) {
+      newErrors.confirm = 'Las contraseñas no coinciden';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleRegister = async () => {
-    const { nombre, apellido, correo, password, confirm } = form;
-    if (!nombre || !apellido || !correo || !password || !confirm) {
-      showAlert('Error', 'Completa todos los campos');
-      return;
-    }
-    if (password !== confirm) {
-      showAlert('Error', 'Las contraseñas no coinciden');
-      return;
-    }
-    if (password.length < 8 || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      showAlert('Contraseña débil', 'Debe tener mínimo 8 caracteres y un carácter especial');
-      return;
-    }
+    if (!validate()) return;
+
+    const { nombre, apellido, correo, password } = form;
     setLoading(true);
     try {
       await registerUseCase.execute({
@@ -110,7 +146,7 @@ export default function RegisterScreen({ navigation }: Props) {
             <View key={key} style={styles.inputGroup}>
               <Text style={styles.label}>{label}</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors[key] ? styles.inputError : null]}
                 placeholder={placeholder}
                 placeholderTextColor="#555"
                 value={form[key]}
@@ -119,6 +155,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 autoCapitalize={key === 'correo' ? 'none' : 'words'}
                 autoCorrect={false}
               />
+              {errors[key] ? <Text style={styles.errorText}>{errors[key]}</Text> : null}
             </View>
           ))}
 
@@ -126,29 +163,31 @@ export default function RegisterScreen({ navigation }: Props) {
             <Text style={styles.label}>Contraseña</Text>
             <View style={styles.passwordRow}>
               <TextInput
-                style={[styles.input, styles.passwordInput]}
+                style={[styles.input, styles.passwordInput, errors.password ? styles.inputError : null]}
                 placeholder="Mín. 8 chars + especial"
                 placeholderTextColor="#555"
                 value={form.password}
                 onChangeText={set('password')}
                 secureTextEntry={!showPass}
               />
-              <Pressable onPress={() => setShowPass((v) => !v)} style={styles.eyeBtn}>
+              <Pressable onPress={() => setShowPass((v) => !v)} style={[styles.eyeBtn, errors.password ? styles.eyeBtnError : null]}>
                 <Ionicons name={showPass ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
               </Pressable>
             </View>
+            {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Confirmar contraseña</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, errors.confirm ? styles.inputError : null]}
               placeholder="Repite la contraseña"
               placeholderTextColor="#555"
               value={form.confirm}
               onChangeText={set('confirm')}
               secureTextEntry={!showPass}
             />
+            {errors.confirm ? <Text style={styles.errorText}>{errors.confirm}</Text> : null}
           </View>
 
           <Pressable
@@ -209,6 +248,18 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+  },
+  eyeBtnError: {
+    borderColor: '#EF4444',
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   btn: {
     backgroundColor: '#7C3AED',

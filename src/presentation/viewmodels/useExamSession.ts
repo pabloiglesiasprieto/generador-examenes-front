@@ -10,6 +10,14 @@ const ALUMNO_TIMER_SECONDS = 120;
 
 type TimerState = { timeRemaining: number | null; isExpired: boolean };
 
+/**
+ * Reducer del temporizador de cuenta regresiva.
+ * Decrementa el tiempo restante en un segundo por cada acción.
+ * Cuando llega a cero marca el examen como expirado.
+ *
+ * @param state - Estado actual del temporizador.
+ * @returns Nuevo estado con el tiempo decrementado o marcado como expirado.
+ */
 function timerReducer(state: TimerState): TimerState {
   if (state.timeRemaining == null || state.isExpired) return state;
   if (state.timeRemaining <= 1) return { timeRemaining: 0, isExpired: true };

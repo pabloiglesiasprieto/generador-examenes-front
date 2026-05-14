@@ -39,6 +39,241 @@ function calcStars(nota: number): number {
   return 0;
 }
 
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function MapHeader({ nombreCompleto, userEmail, isAlumno, isAdmin, completedCount, totalNodes, totalStars, onSignOut }: Readonly<{
+  nombreCompleto: string | null;
+  userEmail: string | undefined;
+  isAlumno: boolean;
+  isAdmin: boolean;
+  completedCount: number;
+  totalNodes: number;
+  totalStars: number;
+  onSignOut: () => void;
+}>) {
+  return (
+    <View style={styles.header}>
+      <View style={styles.headerLeft}>
+        <Text style={styles.greeting}>
+          Hola, <Text style={styles.greetingName}>{nombreCompleto ?? userEmail?.split('@')[0]}</Text>
+        </Text>
+        <Text style={styles.headerSub}>
+          {isAlumno
+            ? `${completedCount}/${totalNodes} completados · ${totalStars}⭐`
+            : isAdmin
+            ? 'Panel de administrador'
+            : 'Panel de profesor'}
+        </Text>
+      </View>
+      <Pressable onPress={onSignOut} style={styles.logoutBtn}>
+        <Text style={styles.logoutText}>Salir</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function CategoriaFilter({ categorias, selected, onSelect }: Readonly<{
+  categorias: string[];
+  selected: string | null;
+  onSelect: (cat: string | null) => void;
+}>) {
+  if (categorias.length === 0) return null;
+  return (
+    <HorizontalScroll style={styles.categoriaBar} contentContainerStyle={styles.categoriaBarContent}>
+      <Pressable
+        style={[styles.categoriaChip, selected === null && styles.categoriaChipActive]}
+        onPress={() => onSelect(null)}
+      >
+        <Text style={[styles.categoriaChipText, selected === null && styles.categoriaChipTextActive]}>Todas</Text>
+      </Pressable>
+      {categorias.map((cat) => (
+        <Pressable
+          key={cat}
+          style={[styles.categoriaChip, selected === cat && styles.categoriaChipActive]}
+          onPress={() => onSelect(cat)}
+        >
+          <Text style={[styles.categoriaChipText, selected === cat && styles.categoriaChipTextActive]}>{cat}</Text>
+        </Pressable>
+      ))}
+    </HorizontalScroll>
+  );
+}
+
+function AlumnoProgress({ completed, total }: Readonly<{ completed: number; total: number }>) {
+  if (total === 0) return null;
+  return (
+    <View style={styles.progressContainer}>
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${(completed / total) * 100}%` }]} />
+      </View>
+      <Text style={styles.progressText}>{Math.round((completed / total) * 100)}% completado</Text>
+    </View>
+  );
+}
+
+function ExamMapScroll({ nodes, selectedCategoria, isEditor, refreshing, onRefresh, onNodePress, onDelete }: Readonly<{
+  nodes: ExamNodeInfo[];
+  selectedCategoria: string | null;
+  isEditor: boolean;
+  refreshing: boolean;
+  onRefresh: () => void;
+  onNodePress: (info: ExamNodeInfo) => void;
+  onDelete: (id: number) => void;
+}>) {
+  if (nodes.length === 0) {
+    return (
+      <View style={styles.empty}>
+        <Text style={styles.emptyEmoji}>📭</Text>
+        <Text style={styles.emptyText}>
+          {selectedCategoria ? `No hay exámenes en "${selectedCategoria}"` : 'No hay exámenes disponibles'}
+        </Text>
+        {isEditor && !selectedCategoria && (
+          <Text style={styles.emptyHint}>Pulsa el botón para generar uno</Text>
+        )}
+      </View>
+    );
+  }
+  return (
+    <ScrollView
+      contentContainerStyle={styles.map}
+      showsVerticalScrollIndicator={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#7C3AED" />}
+    >
+      <View style={styles.pathStart}>
+        <View style={styles.pathStartCircle}><Text style={styles.pathStartText}>START</Text></View>
+      </View>
+      {nodes.map((info, index) => (
+        <View key={`exam-${info.examen.id}`}>
+          <View style={styles.pathLine} />
+          <ExamNode
+            info={info}
+            index={index}
+            onPress={() => onNodePress(info)}
+            isProfesor={isEditor}
+            onDelete={isEditor ? () => onDelete(info.examen.id) : undefined}
+          />
+        </View>
+      ))}
+      <View style={styles.pathLine} />
+      <View style={styles.pathEnd}>
+        <View style={styles.pathEndCircle}><Text style={styles.pathEndText}>🏆</Text></View>
+      </View>
+      <View style={{ height: 60 }} />
+    </ScrollView>
+  );
+}
+
+function SelectCategoriaModal({ visible, categorias, loading, onSelect, onClose }: Readonly<{
+  visible: boolean;
+  categorias: string[];
+  loading: boolean;
+  onSelect: (cat: string | null) => void;
+  onClose: () => void;
+}>) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={styles.modalBox}>
+          <Text style={styles.modalTitle}>Selecciona una categoría</Text>
+          <Text style={styles.modalMessage}>El examen se creará con preguntas de la categoría elegida.</Text>
+          {loading ? (
+            <ActivityIndicator color="#7C3AED" style={{ marginVertical: 16 }} />
+          ) : (
+            <ScrollView style={styles.categoriaList} showsVerticalScrollIndicator={false}>
+              <Pressable style={styles.categoriaItem} onPress={() => onSelect(null)}>
+                <Text style={styles.categoriaItemText}>Todas las categorías</Text>
+              </Pressable>
+              {categorias.map((cat) => (
+                <Pressable key={cat} style={styles.categoriaItem} onPress={() => onSelect(cat)}>
+                  <Text style={styles.categoriaItemText}>{cat}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
+          <Pressable style={[styles.cancelBtn, { width: '100%', flex: undefined }]} onPress={onClose}>
+            <Text style={styles.cancelBtnText}>Cancelar</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function SelectNumPreguntasModal({ visible, error, creating, onSelect, onClose }: Readonly<{
+  visible: boolean;
+  error: string | null;
+  creating: boolean;
+  onSelect: (num: 10 | 20 | 30) => void;
+  onClose: () => void;
+}>) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={styles.modalBox}>
+          <Text style={styles.modalTitle}>¿Cuántas preguntas?</Text>
+          <Text style={styles.modalMessage}>Elige la dificultad del examen según el número de preguntas.</Text>
+          {([
+            { num: 10, label: '10 preguntas', dif: 'Fácil', color: '#10B981' },
+            { num: 20, label: '20 preguntas', dif: 'Medio', color: '#F59E0B' },
+            { num: 30, label: '30 preguntas', dif: 'Difícil', color: '#EF4444' },
+          ] as const).map(({ num, label, dif, color }) => (
+            <Pressable
+              key={num}
+              style={[styles.categoriaItem, { marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }]}
+              onPress={() => onSelect(num)}
+              disabled={creating}
+            >
+              <Text style={styles.categoriaItemText}>{label}</Text>
+              <View style={[styles.difBadge, { backgroundColor: color + '22', borderColor: color }]}>
+                <Text style={[styles.difBadgeText, { color }]}>{dif}</Text>
+              </View>
+            </Pressable>
+          ))}
+          {error && <Text style={[styles.modalMessage, { color: '#EF4444', marginTop: 8 }]}>{error}</Text>}
+          <Pressable style={[styles.cancelBtn, { width: '100%', flex: undefined, marginTop: 8 }]} onPress={onClose}>
+            <Text style={styles.cancelBtnText}>Cancelar</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function DeleteExamenModal({ visible, examId, error, onConfirm, onClose }: Readonly<{
+  visible: boolean;
+  examId: number | null;
+  error: string | null;
+  onConfirm: () => void;
+  onClose: () => void;
+}>) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={styles.modalBox}>
+          <View style={styles.modalIconCircle}><Text style={styles.modalIcon}>🗑️</Text></View>
+          <Text style={styles.modalTitle}>Borrar examen</Text>
+          <Text style={styles.modalMessage}>
+            ¿Estás seguro de que quieres eliminar el{' '}
+            <Text style={{ color: '#EF4444', fontWeight: '700' }}>Examen #{examId}</Text>
+            ?{'\n'}Esta acción no se puede deshacer.
+          </Text>
+          {error && <Text style={{ color: '#EF4444', fontSize: 13, textAlign: 'center', marginTop: 8 }}>{error}</Text>}
+          <View style={styles.modalActions}>
+            <Pressable style={styles.cancelBtn} onPress={onClose}>
+              <Text style={styles.cancelBtnText}>Cancelar</Text>
+            </Pressable>
+            <Pressable style={styles.confirmBtn} onPress={onConfirm}>
+              <Text style={styles.confirmBtnText}>Eliminar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Screen ──────────────────────────────────────────────────────────────────
+
 /**
  * Pantalla principal de mapa de exámenes.
  * Muestra los exámenes disponibles como nodos en un mapa vertical.
@@ -50,30 +285,23 @@ function calcStars(nota: number): number {
  *   y eliminación, y cabecera con información del usuario.
  */
 export default function MapScreen({ navigation }: Props) {
-  const { width, height } = useWindowDimensions();
+  useWindowDimensions(); // subscribe to dimension changes
   const { user, isAlumno, isProfesor, isAdmin, signOut } = useAuth();
   const examenesRef = useRef<ExamenDTO[]>([]);
   const [nodes, setNodes] = useState<ExamNodeInfo[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [selectedCategoria, setSelectedCategoria] = useState<string | null>(null);
-  const loadingRef = useRef(true);
-  const [loadingVisible, setLoadingVisible] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [examToDelete, setExamToDelete] = useState<number | null>(null);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  // Modal de selección de categoría al crear
-  const [categoriaModalVisible, setCategoriaModalVisible] = useState(false);
-  const [categoriasLoading, setCategoriasLoading] = useState(false);
-  const [pendingDuracion] = useState<number | undefined>(undefined);
-  // Modal de selección de número de preguntas
-  const [numPreguntasModalVisible, setNumPreguntasModalVisible] = useState(false);
-  const [pendingCategoria, setPendingCategoria] = useState<string | null | undefined>(undefined);
-  const [numPreguntasError, setNumPreguntasError] = useState<string | null>(null);
-  const loadErrorRef = useRef(false);
-  const [loadErrorVisible, setLoadErrorVisible] = useState(false);
   const [nombreCompleto, setNombreCompleto] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const loadingRef = useRef(true);
+  const loadErrorRef = useRef(false);
+  // Estado de carga agrupado
+  const [loadState, setLoadState] = useState({ loadingVisible: true, refreshing: false, loadErrorVisible: false });
+  // Estado del modal de eliminación
+  const [deleteModal, setDeleteModal] = useState<{ visible: boolean; examId: number | null; error: string | null }>({ visible: false, examId: null, error: null });
+  // Estado del flujo de creación
+  const [createFlow, setCreateFlow] = useState<{ categoriaModalVisible: boolean; categoriasLoading: boolean; numPreguntasModalVisible: boolean; pendingCategoria: string | null | undefined; numPreguntasError: string | null }>({ categoriaModalVisible: false, categoriasLoading: false, numPreguntasModalVisible: false, pendingCategoria: undefined, numPreguntasError: null });
+  const pendingDuracion: number | undefined = undefined;
 
   const getExamenesUseCase = useMemo(() => container.get<IGetExamenesUseCase>(TYPES.IGetExamenesUseCase), []);
   const createExamenUseCase = useMemo(() => container.get<ICreateExamenUseCase>(TYPES.ICreateExamenUseCase), []);
@@ -91,15 +319,12 @@ export default function MapScreen({ navigation }: Props) {
 
   const loadData = useCallback(async () => {
     loadErrorRef.current = false;
-    setLoadErrorVisible(false);
+    setLoadState(s => ({ ...s, loadErrorVisible: false }));
     try {
       const exams = await getExamenesUseCase.execute();
       examenesRef.current = exams;
-
-      // Cargar categorías disponibles
       const cats = await getCategoriasUseCase.execute().catch(() => []);
       setCategorias(cats);
-
       if (isAlumno && user) {
         const allResults = await getResultadosAlumnoUseCase.execute(user.id).catch(() => []);
         const bestByExam = new Map<number, number>();
@@ -107,116 +332,79 @@ export default function MapScreen({ navigation }: Props) {
           const prev = bestByExam.get(r.examen_id);
           if (prev == null || r.nota > prev) bestByExam.set(r.examen_id, r.nota);
         }
-        const enriched: ExamNodeInfo[] = exams.map((ex) => {
+        setNodes(exams.map((ex) => {
           const best = bestByExam.get(ex.id);
           if (best == null) return { examen: ex, status: 'available', stars: 0, bestNota: 0 };
           return { examen: ex, status: 'completed', stars: calcStars(best), bestNota: best };
-        });
-        setNodes(enriched);
+        }));
       } else {
-        setNodes(
-          exams.map((ex) => ({ examen: ex, status: 'available', stars: 0, bestNota: 0 })),
-        );
+        setNodes(exams.map((ex) => ({ examen: ex, status: 'available', stars: 0, bestNota: 0 })));
       }
     } catch {
       loadErrorRef.current = true;
-      setLoadErrorVisible(true);
+      setLoadState(s => ({ ...s, loadErrorVisible: true }));
     } finally {
       loadingRef.current = false;
-      setLoadingVisible(false);
-      setRefreshing(false);
+      setLoadState({ loadingVisible: false, refreshing: false, loadErrorVisible: loadErrorRef.current });
     }
   }, [isAlumno, user]);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadingRef.current = true;
-      setLoadingVisible(true);
-      loadData();
-    }, [loadData]),
-  );
-
-  const handleRefresh = () => {
-    setRefreshing(true);
+  useFocusEffect(useCallback(() => {
+    loadingRef.current = true;
+    setLoadState(s => ({ ...s, loadingVisible: true }));
     loadData();
-  };
+  }, [loadData]));
 
   const handleNodePress = (info: ExamNodeInfo) => {
-    if (isProfesor || isAdmin) {
-      navigation.navigate('Exam', { examen: info.examen, isAdminMode: true });
-    } else {
-      navigation.navigate('Exam', { examen: info.examen });
-    }
+    navigation.navigate('Exam', { examen: info.examen, isAdminMode: isProfesor || isAdmin || undefined });
   };
 
-  // Abrir modal de selección de categoría
   const handleCreate = async () => {
-    setCategoriasLoading(true);
-    setCategoriaModalVisible(true);
+    setCreateFlow(s => ({ ...s, categoriasLoading: true, categoriaModalVisible: true }));
     try {
       const cats = await getCategoriasUseCase.execute();
       setCategorias(cats);
-    } catch {
-      // ya tenemos categorias del loadData, seguimos
-    } finally {
-      setCategoriasLoading(false);
+    } catch { /* usa categorías del loadData */ } finally {
+      setCreateFlow(s => ({ ...s, categoriasLoading: false }));
     }
   };
 
-  // Tras elegir categoría, abrir modal de número de preguntas
   const handleSelectCategoria = (categoria: string | null) => {
-    setCategoriaModalVisible(false);
-    setPendingCategoria(categoria);
-    setNumPreguntasError(null);
-    setNumPreguntasModalVisible(true);
+    setCreateFlow(s => ({ ...s, categoriaModalVisible: false, pendingCategoria: categoria, numPreguntasError: null, numPreguntasModalVisible: true }));
   };
 
-  // Crear examen con categoría y número de preguntas elegidos
   const handleSelectNumPreguntas = async (numPreguntas: 10 | 20 | 30) => {
-    setNumPreguntasError(null);
+    setCreateFlow(s => ({ ...s, numPreguntasError: null }));
     setCreating(true);
     try {
-      await createExamenUseCase.execute(pendingDuracion, pendingCategoria ?? undefined, numPreguntas);
-      setNumPreguntasModalVisible(false);
+      await createExamenUseCase.execute(pendingDuracion, createFlow.pendingCategoria ?? undefined, numPreguntas);
+      setCreateFlow(s => ({ ...s, numPreguntasModalVisible: false }));
       await loadData();
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'No se pudo crear el examen';
-      setNumPreguntasError(msg);
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'No se pudo crear el examen';
+      setCreateFlow(s => ({ ...s, numPreguntasError: msg }));
     } finally {
       setCreating(false);
     }
   };
 
-  const handleDelete = (examenId: number) => {
-    setExamToDelete(examenId);
-    setDeleteError(null);
-    setDeleteModalVisible(true);
-  };
-
   const confirmDelete = async () => {
-    if (examToDelete == null) return;
-    setDeleteError(null);
+    if (deleteModal.examId == null) return;
     try {
-      await deleteExamenUseCase.execute(examToDelete);
-      setDeleteModalVisible(false);
-      setExamToDelete(null);
+      await deleteExamenUseCase.execute(deleteModal.examId);
+      setDeleteModal({ visible: false, examId: null, error: null });
       await loadData();
     } catch {
-      setDeleteError('No se pudo eliminar el examen. Inténtalo de nuevo.');
+      setDeleteModal(s => ({ ...s, error: 'No se pudo eliminar el examen. Inténtalo de nuevo.' }));
     }
   };
 
-  // Filtrar nodos por categoría seleccionada
-  const filteredNodes = selectedCategoria
-    ? nodes.filter((n) => n.examen.categoria === selectedCategoria)
-    : nodes;
-
+  const filteredNodes = selectedCategoria ? nodes.filter((n) => n.examen.categoria === selectedCategoria) : nodes;
   const totalStars = filteredNodes.reduce((acc, n) => acc + n.stars, 0);
   const completedCount = filteredNodes.filter((n) => n.status === 'completed').length;
+  const isEditor = isProfesor || isAdmin;
 
-  if (loadingVisible) {
+  if (loadState.loadingVisible) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#7C3AED" />
@@ -225,7 +413,7 @@ export default function MapScreen({ navigation }: Props) {
     );
   }
 
-  if (loadErrorVisible) {
+  if (loadState.loadErrorVisible) {
     return (
       <View style={styles.center}>
         <Text style={{ fontSize: 16, color: '#EF4444', marginBottom: 16, textAlign: 'center' }}>
@@ -233,7 +421,7 @@ export default function MapScreen({ navigation }: Props) {
         </Text>
         <Pressable
           style={{ backgroundColor: '#7C3AED', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }}
-          onPress={() => { setLoadingVisible(true); loadData(); }}
+          onPress={() => { setLoadState(s => ({ ...s, loadingVisible: true })); loadData(); }}
         >
           <Text style={{ color: '#fff', fontWeight: '600' }}>Reintentar</Text>
         </Pressable>
@@ -243,264 +431,53 @@ export default function MapScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>
-            Hola, <Text style={styles.greetingName}>{nombreCompleto ?? user?.email.split('@')[0]}</Text>
-          </Text>
-          <Text style={styles.headerSub}>
-            {isAlumno
-              ? `${completedCount}/${filteredNodes.length} completados · ${totalStars}⭐`
-              : isAdmin
-              ? 'Panel de administrador'
-              : 'Panel de profesor'}
-          </Text>
-        </View>
-        <Pressable onPress={signOut} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Salir</Text>
-        </Pressable>
-      </View>
-
-      {/* Filtro por categoría */}
-      {categorias.length > 0 && (
-        <HorizontalScroll
-          style={styles.categoriaBar}
-          contentContainerStyle={styles.categoriaBarContent}
-        >
-          <Pressable
-            style={[styles.categoriaChip, selectedCategoria === null && styles.categoriaChipActive]}
-            onPress={() => setSelectedCategoria(null)}
-          >
-            <Text style={[styles.categoriaChipText, selectedCategoria === null && styles.categoriaChipTextActive]}>
-              Todas
-            </Text>
-          </Pressable>
-          {categorias.map((cat) => (
-            <Pressable
-              key={cat}
-              style={[styles.categoriaChip, selectedCategoria === cat && styles.categoriaChipActive]}
-              onPress={() => setSelectedCategoria(cat)}
-            >
-              <Text style={[styles.categoriaChipText, selectedCategoria === cat && styles.categoriaChipTextActive]}>
-                {cat}
-              </Text>
-            </Pressable>
-          ))}
-        </HorizontalScroll>
-      )}
-
-      {/* Progress bar for alumno */}
-      {isAlumno && filteredNodes.length > 0 && (
-        <View style={styles.progressContainer}>
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${(completedCount / filteredNodes.length) * 100}%` },
-              ]}
-            />
-          </View>
-          <Text style={styles.progressText}>
-            {Math.round((completedCount / filteredNodes.length) * 100)}% completado
-          </Text>
-        </View>
-      )}
-
-      {/* Create button for profesor/admin */}
-      {(isProfesor || isAdmin) && (
-        <Pressable
-          style={[styles.createBtn, creating && styles.btnDisabled]}
-          onPress={handleCreate}
-          disabled={creating}
-        >
-          {creating ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.createBtnText}>+ Generar nuevo examen</Text>
-          )}
+      <MapHeader
+        nombreCompleto={nombreCompleto}
+        userEmail={user?.email}
+        isAlumno={isAlumno}
+        isAdmin={isAdmin}
+        completedCount={completedCount}
+        totalNodes={filteredNodes.length}
+        totalStars={totalStars}
+        onSignOut={signOut}
+      />
+      <CategoriaFilter categorias={categorias} selected={selectedCategoria} onSelect={setSelectedCategoria} />
+      {isAlumno && <AlumnoProgress completed={completedCount} total={filteredNodes.length} />}
+      {isEditor && (
+        <Pressable style={[styles.createBtn, creating && styles.btnDisabled]} onPress={handleCreate} disabled={creating}>
+          {creating ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.createBtnText}>+ Generar nuevo examen</Text>}
         </Pressable>
       )}
-
-      {/* Map */}
-      {filteredNodes.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyEmoji}>📭</Text>
-          <Text style={styles.emptyText}>
-            {selectedCategoria
-              ? `No hay exámenes en "${selectedCategoria}"`
-              : 'No hay exámenes disponibles'}
-          </Text>
-          {(isProfesor || isAdmin) && !selectedCategoria && (
-            <Text style={styles.emptyHint}>Pulsa el botón para generar uno</Text>
-          )}
-        </View>
-      ) : (
-        <ScrollView
-          contentContainerStyle={styles.map}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor="#7C3AED"
-            />
-          }
-        >
-          <View style={styles.pathStart}>
-            <View style={styles.pathStartCircle}>
-              <Text style={styles.pathStartText}>START</Text>
-            </View>
-          </View>
-
-          {filteredNodes.map((info, index) => (
-            <View key={`exam-${info.examen.id}`}>
-              <View style={styles.pathLine} />
-              <ExamNode
-                info={info}
-                index={index}
-                onPress={() => handleNodePress(info)}
-                isProfesor={isProfesor || isAdmin}
-                onDelete={isProfesor || isAdmin ? () => handleDelete(info.examen.id) : undefined}
-              />
-            </View>
-          ))}
-
-          <View style={styles.pathLine} />
-          <View style={styles.pathEnd}>
-            <View style={styles.pathEndCircle}>
-              <Text style={styles.pathEndText}>🏆</Text>
-            </View>
-          </View>
-          <View style={{ height: 60 }} />
-        </ScrollView>
-      )}
-
-      {/* Modal selección de categoría al crear examen */}
-      <Modal
-        visible={categoriaModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCategoriaModalVisible(false)}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Selecciona una categoría</Text>
-            <Text style={styles.modalMessage}>
-              El examen se creará con preguntas de la categoría elegida.
-            </Text>
-            {categoriasLoading ? (
-              <ActivityIndicator color="#7C3AED" style={{ marginVertical: 16 }} />
-            ) : (
-              <ScrollView style={styles.categoriaList} showsVerticalScrollIndicator={false}>
-                <Pressable
-                  style={styles.categoriaItem}
-                  onPress={() => handleSelectCategoria(null)}
-                >
-                  <Text style={styles.categoriaItemText}>Todas las categorías</Text>
-                </Pressable>
-                {categorias.map((cat) => (
-                  <Pressable
-                    key={cat}
-                    style={styles.categoriaItem}
-                    onPress={() => handleSelectCategoria(cat)}
-                  >
-                    <Text style={styles.categoriaItemText}>{cat}</Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            )}
-            <Pressable
-              style={[styles.cancelBtn, { width: '100%', flex: undefined }]}
-              onPress={() => setCategoriaModalVisible(false)}
-            >
-              <Text style={styles.cancelBtnText}>Cancelar</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal selección de número de preguntas */}
-      <Modal
-        visible={numPreguntasModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setNumPreguntasModalVisible(false)}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>¿Cuántas preguntas?</Text>
-            <Text style={styles.modalMessage}>
-              Elige la dificultad del examen según el número de preguntas.
-            </Text>
-            {([
-              { num: 10, label: '10 preguntas', dif: 'Fácil', color: '#10B981' },
-              { num: 20, label: '20 preguntas', dif: 'Medio', color: '#F59E0B' },
-              { num: 30, label: '30 preguntas', dif: 'Difícil', color: '#EF4444' },
-            ] as const).map(({ num, label, dif, color }) => (
-              <Pressable
-                key={num}
-                style={[styles.categoriaItem, { marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 16 }]}
-                onPress={() => void handleSelectNumPreguntas(num)}
-              >
-                <Text style={styles.categoriaItemText}>{label}</Text>
-                <View style={[styles.difBadge, { backgroundColor: color + '22', borderColor: color }]}>
-                  <Text style={[styles.difBadgeText, { color }]}>{dif}</Text>
-                </View>
-              </Pressable>
-            ))}
-            {numPreguntasError && (
-              <Text style={[styles.modalMessage, { color: '#EF4444', marginTop: 8 }]}>{numPreguntasError}</Text>
-            )}
-            <Pressable
-              style={[styles.cancelBtn, { width: '100%', flex: undefined, marginTop: 8 }]}
-              onPress={() => { setNumPreguntasModalVisible(false); setNumPreguntasError(null); }}
-            >
-              <Text style={styles.cancelBtnText}>Cancelar</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Delete confirmation modal */}
-      <Modal
-        visible={deleteModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => { setDeleteModalVisible(false); setDeleteError(null); }}
-      >
-        <View style={styles.overlay}>
-          <View style={styles.modalBox}>
-            <View style={styles.modalIconCircle}>
-              <Text style={styles.modalIcon}>🗑️</Text>
-            </View>
-            <Text style={styles.modalTitle}>Borrar examen</Text>
-            <Text style={styles.modalMessage}>
-              ¿Estás seguro de que quieres eliminar el{' '}
-              <Text style={{ color: '#EF4444', fontWeight: '700' }}>
-                Examen #{examToDelete}
-              </Text>
-              ?{'\n'}Esta acción no se puede deshacer.
-            </Text>
-            {deleteError && (
-              <Text style={{ color: '#EF4444', fontSize: 13, textAlign: 'center', marginTop: 8 }}>
-                {deleteError}
-              </Text>
-            )}
-            <View style={styles.modalActions}>
-              <Pressable
-                style={styles.cancelBtn}
-                onPress={() => { setDeleteModalVisible(false); setDeleteError(null); }}
-              >
-                <Text style={styles.cancelBtnText}>Cancelar</Text>
-              </Pressable>
-              <Pressable style={styles.confirmBtn} onPress={confirmDelete}>
-                <Text style={styles.confirmBtnText}>Eliminar</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <ExamMapScroll
+        nodes={filteredNodes}
+        selectedCategoria={selectedCategoria}
+        isEditor={isEditor}
+        refreshing={loadState.refreshing}
+        onRefresh={() => { setLoadState(s => ({ ...s, refreshing: true })); loadData(); }}
+        onNodePress={handleNodePress}
+        onDelete={(id) => setDeleteModal({ visible: true, examId: id, error: null })}
+      />
+      <SelectCategoriaModal
+        visible={createFlow.categoriaModalVisible}
+        categorias={categorias}
+        loading={createFlow.categoriasLoading}
+        onSelect={handleSelectCategoria}
+        onClose={() => setCreateFlow(s => ({ ...s, categoriaModalVisible: false }))}
+      />
+      <SelectNumPreguntasModal
+        visible={createFlow.numPreguntasModalVisible}
+        error={createFlow.numPreguntasError}
+        creating={creating}
+        onSelect={(num) => void handleSelectNumPreguntas(num)}
+        onClose={() => setCreateFlow(s => ({ ...s, numPreguntasModalVisible: false, numPreguntasError: null }))}
+      />
+      <DeleteExamenModal
+        visible={deleteModal.visible}
+        examId={deleteModal.examId}
+        error={deleteModal.error}
+        onConfirm={confirmDelete}
+        onClose={() => setDeleteModal({ visible: false, examId: null, error: null })}
+      />
     </View>
   );
 }

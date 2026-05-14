@@ -14,6 +14,13 @@ import {
 } from '../../domain/interfaces/useCases/usuarios/IUsuarioUseCase';
 import { UsuarioDTO, RolDTO } from '../../domain/entities/Usuario';
 
+/**
+ * Extrae el mensaje de error de una respuesta de la API o devuelve un texto de respaldo.
+ *
+ * @param err - Error capturado en el bloque catch.
+ * @param fallback - Mensaje a mostrar si el error no contiene información del servidor.
+ * @returns Mensaje de error legible para el usuario.
+ */
 function extractApiError(err: unknown, fallback: string): string {
   return (
     (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? fallback
@@ -22,6 +29,29 @@ function extractApiError(err: unknown, fallback: string): string {
 
 export type TabUsuarios = 'activos' | 'inactivos';
 
+/**
+ * ViewModel de la pantalla de gestión de usuarios (administrador).
+ * Carga todos los usuarios (activos e inactivos) y roles disponibles al montarse.
+ * Permite activar/desactivar cuentas y gestionar los roles de cada usuario.
+ *
+ * @param currentUserId - Identificador del usuario autenticado, para impedir que se desactive a sí mismo.
+ * @returns Objeto con el estado y los handlers:
+ *   - `usuariosActivos`: usuarios con `activo !== false`.
+ *   - `usuariosInactivos`: usuarios con `activo === false`.
+ *   - `loading`: indicador de carga inicial.
+ *   - `selectedUser`: usuario seleccionado en el modal de detalle, o null.
+ *   - `userRoles`: roles actuales del usuario seleccionado.
+ *   - `allRoles`: lista completa de roles disponibles en el sistema.
+ *   - `modalVisible`: controla la visibilidad del modal de detalle.
+ *   - `rolLoading`: indica si se está cargando o modificando un rol.
+ *   - `tabActiva`: pestaña activa ('activos' o 'inactivos').
+ *   - `setTabActiva`: setter de la pestaña activa.
+ *   - `openUserDetail`: abre el modal y carga los roles del usuario seleccionado.
+ *   - `closeModal`: cierra el modal de detalle.
+ *   - `handleToggleRol`: asigna o revoca un rol al usuario seleccionado.
+ *   - `handleDesactivar`: solicita confirmación y desactiva un usuario.
+ *   - `handleActivar`: solicita confirmación y activa un usuario.
+ */
 export function useUsersScreen(currentUserId: number | undefined) {
   const { showAlert } = useAlert();
   const [usuarios, setUsuarios] = useState<UsuarioDTO[]>([]);

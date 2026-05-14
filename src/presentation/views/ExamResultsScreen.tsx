@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import {
   View,
   Text,
@@ -121,17 +121,34 @@ function DetalleModal({
   );
 }
 
+type LoadState = {
+  results: ResultadoDTO[];
+  loading: boolean;
+  error: string | null;
+  autorNombre: string | null;
+  fechaCreacion: string | null;
+};
+
+type LoadAction =
+  | { type: 'loaded'; results: ResultadoDTO[]; autorNombre: string | null; fechaCreacion: string | null }
+  | { type: 'error' };
+
+function loadReducer(_: LoadState, action: LoadAction): LoadState {
+  if (action.type === 'loaded') {
+    return { loading: false, error: null, results: action.results, autorNombre: action.autorNombre, fechaCreacion: action.fechaCreacion };
+  }
+  return { loading: false, error: 'No se pudieron cargar los resultados', results: [], autorNombre: null, fechaCreacion: null };
+}
+
 export default function ExamResultsScreen() {
   const { goBack } = useNavigation<ExamResultsNav>();
   const route = useRoute<ExamResultsRoute>();
   const { examenId } = route.params;
 
-  const [results, setResults] = useState<ResultadoDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [{ results, loading, error, autorNombre, fechaCreacion }, dispatch] = useReducer(loadReducer, {
+    results: [], loading: true, error: null, autorNombre: null, fechaCreacion: null,
+  });
   const [selected, setSelected] = useState<ResultadoDTO | null>(null);
-  const [autorNombre, setAutorNombre] = useState<string | null>(null);
-  const [fechaCreacion, setFechaCreacion] = useState<string | null>(null);
 
   const getResultadosUseCase = useMemo(
     () => container.get<IGetResultadosExamenUseCase>(TYPES.IGetResultadosExamenUseCase),
@@ -147,19 +164,23 @@ export default function ExamResultsScreen() {
   );
 
   useEffect(() => {
-    const fetchResultados = getResultadosUseCase
-      .execute(examenId)
-      .then(setResults)
-      .catch(() => setError('No se pudieron cargar los resultados'));
-
-    const fetchAutor = getExamenByIdUseCase.execute(examenId).then((examen) => {
-      setFechaCreacion(new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }));
-      return getUsuarioByIdUseCase.execute(examen.autor_id).then((u) => {
-        setAutorNombre(`${u.nombre_usuario} ${u.apellido_usuario}`);
-      });
-    }).catch(() => {});
-
-    Promise.all([fetchResultados, fetchAutor]).finally(() => setLoading(false));
+    Promise.all([
+      getResultadosUseCase.execute(examenId).catch(() => null),
+      getExamenByIdUseCase.execute(examenId)
+        .then(async (examen) => ({
+          fechaCreacion: new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+          autorNombre: await getUsuarioByIdUseCase.execute(examen.autor_id)
+            .then((u) => `${u.nombre_usuario} ${u.apellido_usuario}`)
+            .catch(() => null),
+        }))
+        .catch(() => null),
+    ]).then(([fetchedResults, meta]) => {
+      if (fetchedResults == null) {
+        dispatch({ type: 'error' });
+      } else {
+        dispatch({ type: 'loaded', results: fetchedResults, autorNombre: meta?.autorNombre ?? null, fechaCreacion: meta?.fechaCreacion ?? null });
+      }
+    });
   }, [examenId]);
 
   const renderItem = useCallback(({ item }: { item: ResultadoDTO }) => {

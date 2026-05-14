@@ -56,8 +56,14 @@ export class GetAllUsuariosUseCase implements IGetAllUsuariosUseCase {
  */
 @injectable()
 export class GetAllUsuariosConInactivosUseCase implements IGetAllUsuariosConInactivosUseCase {
+  /** @param usuarioRepository - Repositorio de usuarios inyectado por el contenedor de IoC. */
   constructor(@inject(TYPES.IUsuarioRepository) private usuarioRepository: IUsuarioRepository) {}
 
+  /**
+   * Obtiene la lista de todos los usuarios del sistema, incluyendo los desactivados.
+   *
+   * @returns Promesa que resuelve con la lista de usuarios activos e inactivos.
+   */
   execute(): Promise<UsuarioDTO[]> {
     return this.usuarioRepository.getAllUsuariosConInactivos();
   }
@@ -68,8 +74,16 @@ export class GetAllUsuariosConInactivosUseCase implements IGetAllUsuariosConInac
  */
 @injectable()
 export class ActivarUsuarioUseCase implements IActivarUsuarioUseCase {
+  /** @param usuarioRepository - Repositorio de usuarios inyectado por el contenedor de IoC. */
   constructor(@inject(TYPES.IUsuarioRepository) private usuarioRepository: IUsuarioRepository) {}
 
+  /**
+   * Reactiva una cuenta de usuario desactivada.
+   *
+   * @param id - Identificador del usuario a activar.
+   * @param usuario - Datos actuales del usuario necesarios para la operación.
+   * @returns Promesa que resuelve con los datos del usuario activado.
+   */
   execute(id: number, usuario: UsuarioDTO): Promise<UsuarioDTO> {
     return this.usuarioRepository.activarUsuario(id, usuario);
   }

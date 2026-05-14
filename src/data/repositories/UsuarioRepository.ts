@@ -28,10 +28,22 @@ export class UsuarioRepository implements IUsuarioRepository {
     return apiClient.get<UsuarioDTO[]>('/usuarios').then((r) => r.data);
   }
 
+  /**
+   * Obtiene todos los usuarios del sistema, incluyendo los desactivados.
+   *
+   * @returns Promesa que resuelve con la lista de usuarios activos e inactivos.
+   */
   getAllUsuariosConInactivos(): Promise<UsuarioDTO[]> {
     return apiClient.get<UsuarioDTO[]>('/usuarios?incluirInactivos=true').then((r) => r.data);
   }
 
+  /**
+   * Reactiva una cuenta de usuario desactivada conservando sus datos personales.
+   *
+   * @param id - Identificador del usuario a activar.
+   * @param usuario - Datos actuales del usuario (nombre, apellido, correo).
+   * @returns Promesa que resuelve con los datos del usuario activado.
+   */
   activarUsuario(id: number, usuario: UsuarioDTO): Promise<UsuarioDTO> {
     return apiClient.put<UsuarioDTO>(`/usuarios/${id}`, {
       nombre_usuario: usuario.nombre_usuario,

@@ -217,10 +217,12 @@ function HistoryCard({
 export default function HistoryScreen({ navigation }: Readonly<Props>) {
   const { user } = useAuth();
   const history = useHistoryScreen(user?.id);
+  // Destructure openDetalle to avoid the `window.history` shadow in deps
+  const { openDetalle } = history;
 
   const handleItemPress = useCallback((item: ResultadoDTO) => {
-    history.openDetalle(item);
-  }, [history.openDetalle]);
+    openDetalle(item);
+  }, [openDetalle]);
 
   const renderItem = useCallback(({ item, index }: { item: ResultadoDTO; index: number }) => (
     <HistoryCard item={item} index={index} onPress={() => handleItemPress(item)} />

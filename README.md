@@ -200,43 +200,58 @@ Este flujo está gestionado por el ViewModel `useForgotPassword`.
 
 ## Componentes reutilizables
 
-| Componente      | Descripción                                                           |
-|-----------------|-----------------------------------------------------------------------|
-| `ErrorBox`      | Muestra mensajes de error con estilo consistente                      |
-| `LoadingButton` | Botón que muestra un spinner mientras la acción está en curso         |
-| `PasswordInput` | Campo de contraseña con toggle de visibilidad                         |
-| `ExamNode`      | Representación visual de un examen en el mapa (estado, nota, etc.)   |
+| Componente        | Descripción                                                                          |
+|-------------------|--------------------------------------------------------------------------------------|
+| `ErrorBox`        | Muestra mensajes de error con estilo consistente                                     |
+| `LoadingButton`   | Botón que muestra un spinner mientras la acción está en curso                        |
+| `PasswordInput`   | Campo de contraseña con toggle de visibilidad                                        |
+| `ExamNode`        | Representación visual de un examen en el mapa (estado, estrellas, nota, etc.)       |
+| `HorizontalScroll`| ScrollView horizontal con soporte de scroll con rueda del ratón en web              |
 
 ---
 
 ## Módulos de funcionalidad
 
 ### Exámenes
-- Listar exámenes disponibles (por rol)
-- Ver detalle de un examen
-- Crear examen (PROFESOR/ADMIN) — solicita preguntas aleatorias al backend
-- Realizar examen y recibir corrección inmediata
-- Ver resultados de todos los alumnos en un examen
+- Listar exámenes disponibles con filtro por categoría (barra deslizante horizontal)
+- Ver detalle de un examen en modo admin (respuestas correctas destacadas, autor y fecha)
+- Crear examen eligiendo categoría y número de preguntas (10 / 20 / 30) — solicita preguntas aleatorias al backend
+- Realizar examen con temporizador de cuenta regresiva y autoenvío al expirar
+- Navegar entre preguntas hacia adelante y hacia atrás
+- Recibir corrección inmediata con desglose por pregunta
+- Ver resultados de todos los alumnos en un examen (PROFESOR/ADMIN)
 - Exportar listado a Excel o PDF
 
 ### Preguntas
-- Listar banco de preguntas con ordenación
+- Listar banco de preguntas con ordenación y filtro por categoría
 - Crear, editar y eliminar preguntas con sus respuestas
 - Importar preguntas desde CSV
+- Exportar banco de preguntas a Excel o PDF
 
 ### Usuarios
 - Listar usuarios y roles
 - Asignar/quitar roles (ADMIN)
-- Editar y desactivar usuarios
+- Editar datos y desactivar usuarios
 - Ver historial de resultados de un alumno
 
 ### Incidencias
 - Listar incidencias del sistema con filtro por clase Java (solo ADMIN)
 
-### Dashboard
-- Estadísticas globales de exámenes
-- Ranking de alumnos por nota
-- Estadísticas por pregunta
+### Dashboard (ADMIN/PROFESOR)
+- Estadísticas globales por examen: nota media, máxima, mínima y número de intentos
+- Ranking de alumnos por nota media
+- Estadísticas por pregunta ordenadas por tasa de fallo
+
+---
+
+## Alertas globales
+
+El sistema de alertas está centralizado en `AlertContext` (accesible mediante el hook `useAlert`). Sustituye a `Alert.alert` nativo para garantizar un comportamiento consistente en web y nativo.
+
+```ts
+const { showAlert } = useAlert();
+showAlert('Error', 'No se pudo guardar el perfil.');
+```
 
 ---
 
@@ -249,10 +264,13 @@ src/data/apiconnection/
 src/infrastructure/config/
   container.ts                   # Bindings InversifyJS
   types.ts                       # Símbolos de inyección
+src/presentation/components/
+  HorizontalScroll.tsx           # Scroll horizontal con soporte de rueda del ratón en web
 src/presentation/viewmodels/
-  AuthContext.tsx                 # Estado global de sesión
+  AlertContext.tsx               # Proveedor y hook de alertas globales (useAlert)
+  AuthContext.tsx                # Estado global de sesión
   useForgotPassword.ts           # Lógica de recuperación de contraseña
-  useExamSession.ts              # Lógica de realización de examen
+  useExamSession.ts              # Lógica de realización de examen (temporizador, navegación, envío)
   useDashboardScreen.ts          # Estadísticas y ranking
   useQuestionsScreen.ts          # CRUD de preguntas
   useUsersScreen.ts              # Gestión de usuarios

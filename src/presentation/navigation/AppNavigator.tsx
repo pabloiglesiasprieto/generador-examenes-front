@@ -40,7 +40,7 @@ function TabIcon({ routeName, color, size }: Readonly<{ routeName: string; color
   return <Ionicons name={TAB_ICONS[routeName] ?? 'ellipse'} size={size} color={color} />;
 }
 
-// ── Param lists ───────────────────────────────────────────────────────────────
+// ── Listas de parámetros ──────────────────────────────────────────────────────
 
 /** Lista de parámetros de las pantallas del stack de juego. */
 export type GameStackParamList = {
@@ -72,7 +72,7 @@ export type AppTabParamList = {
   AdminTab: undefined;
 };
 
-// ── Stacks ────────────────────────────────────────────────────────────────────
+// ── Navegadores de pila ───────────────────────────────────────────────────────
 
 /**
  * Navegador de pila para el flujo de juego.
@@ -133,7 +133,7 @@ function AdminNavigator() {
   );
 }
 
-// ── Tab navigator ─────────────────────────────────────────────────────────────
+// ── Navegador de pestañas ─────────────────────────────────────────────────────
 const Tab = createBottomTabNavigator<AppTabParamList>();
 
 /**

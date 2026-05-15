@@ -49,8 +49,7 @@ export function useDashboardScreen() {
       setEstadisticasExamenes(examenes);
       setRankingAlumnos(ranking);
       setEstadisticasPreguntas(preguntas);
-    } catch (err) {
-      console.error('[Dashboard] Error cargando estadísticas:', err);
+    } catch {
       setError('No se pudieron cargar las estadísticas');
     } finally {
       setLoading(false);

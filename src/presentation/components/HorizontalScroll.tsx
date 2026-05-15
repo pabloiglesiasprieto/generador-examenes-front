@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { View, ScrollView, Platform, StyleProp, ViewStyle } from 'react-native';
 
 /**
- * Wrapper around a horizontal ScrollView that also supports vertical mouse-wheel
- * scrolling on web (PC). Without this, the browser's default wheel behaviour
- * scrolls the page vertically and never reaches the inner horizontal list.
+ * Envuelve un ScrollView horizontal y añade soporte para desplazar con la rueda
+ * del ratón en web (PC). Sin esto, el comportamiento por defecto del navegador
+ * desplaza la página verticalmente y nunca alcanza la lista horizontal interior.
  */
 export default function HorizontalScroll({
   style,
@@ -20,8 +20,8 @@ export default function HorizontalScroll({
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
-    // RNW forwards the ref to the DOM node and also attaches getScrollableNode() on it.
-    // getScrollableNode() returns the same node (the inner scrollable div with overflow-x: auto).
+    // RNW reenvía la ref al nodo DOM y también expone getScrollableNode() en él.
+    // getScrollableNode() devuelve el mismo nodo (el div interior con overflow-x: auto).
     const el: HTMLElement | null =
       (scrollRef.current as any)?.getScrollableNode?.() ??
       (scrollRef.current as unknown as HTMLElement | null);
@@ -29,7 +29,7 @@ export default function HorizontalScroll({
     if (!el) return;
 
     const onWheel = (e: WheelEvent) => {
-      // Let the browser handle native horizontal scroll gestures (trackpad swipe)
+      // Deja que el navegador gestione el scroll horizontal nativo (deslizamiento en trackpad)
       if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return;
       e.preventDefault();
       el.scrollLeft += e.deltaY;

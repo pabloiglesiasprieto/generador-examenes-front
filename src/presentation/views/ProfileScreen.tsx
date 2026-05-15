@@ -189,7 +189,7 @@ export default function ProfileScreen({ navigation }: Props) {
           showAlert('Archivo generado', `Guardado en: ${uri}`);
         }
       } else {
-        // Web: descarga directa via <a>
+        // Web: descarga directa vía <a>
         const blob = new Blob([buffer], { type: mime });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F59E0B',
   },
   xpLabel: { fontSize: 11, color: '#64748B' },
-  // Stats
+  // Estadísticas
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

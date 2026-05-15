@@ -217,7 +217,7 @@ function HistoryCard({
 export default function HistoryScreen({ navigation }: Readonly<Props>) {
   const { user } = useAuth();
   const history = useHistoryScreen(user?.id);
-  // Destructure openDetalle to avoid the `window.history` shadow in deps
+  // Desestructuramos openDetalle para evitar la colisión con window.history en las dependencias
   const { openDetalle } = history;
 
   const handleItemPress = useCallback((item: ResultadoDTO) => {

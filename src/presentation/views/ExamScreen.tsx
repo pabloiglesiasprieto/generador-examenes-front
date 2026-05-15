@@ -132,7 +132,9 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
     if (!isAdminMode) return;
     getUsuarioByIdUseCase.execute(examen.autor_id).then((u) => {
       setAutorNombre(`${u.nombre_usuario} ${u.apellido_usuario}`);
-    }).catch(() => {});
+    }).catch(() => {
+      showAlert('Aviso', 'No se pudo cargar el nombre del autor');
+    });
   }, [examen.autor_id, isAdminMode]);
   const [quitModalVisible, setQuitModalVisible] = useState(false);
 
@@ -142,7 +144,9 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   // Registrar inicio en backend (solo para alumnos, para calcular tiempo_segundos)
   useEffect(() => {
     if (!isAdminMode) {
-      iniciarExamenUseCase.execute(examen.id).catch(() => {});
+      iniciarExamenUseCase.execute(examen.id).catch(() => {
+        showAlert('Error', 'No se pudo registrar el inicio del examen. El tiempo puede no calcularse correctamente.');
+      });
     }
   }, [examen.id, isAdminMode]);
 

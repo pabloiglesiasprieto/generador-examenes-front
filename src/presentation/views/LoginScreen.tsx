@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   tagText: { color: '#7C3AED', fontSize: 12, fontWeight: '700' },
 
-  // Card
+  // Tarjeta
   card: {
     backgroundColor: '#1A1A2E', borderRadius: 24,
     borderWidth: 1, borderColor: '#2D2D44',
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: 24, marginTop: 8,
   },
 
-  // Inputs
+  // Campos
   inputGroup: { marginBottom: 16 },
   label: {
     fontSize: 12, fontWeight: '600', color: '#94A3B8',

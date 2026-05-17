@@ -9,7 +9,7 @@ module.exports = function (api) {
     ],
     overrides: [
       {
-        exclude: /node_modules/,
+        exclude: (filename) => !filename || filename.includes('node_modules'),
         plugins: [
           ['@babel/plugin-proposal-decorators', { legacy: true }],
           'babel-plugin-transform-typescript-metadata',

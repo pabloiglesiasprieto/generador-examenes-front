@@ -53,7 +53,7 @@ export function useHistoryScreen(userId: number | undefined) {
       ? resultados
       : resultados.filter((r) => r.examen_id === filtroExamen);
 
-  const examenesIds = Array.from(new Set(resultados.map((r) => r.examen_id))).toSorted((a, b) => a - b);
+  const examenesIds = Array.from(new Set(resultados.map((r) => r.examen_id))).sort((a, b) => a - b);
 
   const avg =
     resultadosFiltrados.length > 0

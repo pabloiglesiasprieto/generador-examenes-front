@@ -178,10 +178,17 @@ export default function ProfileScreen({ navigation }: Props) {
       if (typeof document === 'undefined') {
         // Nativo (iOS/Android)
         const uri = `${FileSystem.cacheDirectory}examenes_export.${ext}`;
-        const fileRef = FileSystem.File ? new FileSystem.File(uri) : null;
-        if (fileRef) {
-          fileRef.write(new Uint8Array(buffer));
+
+        // Convertir ArrayBuffer → base64 en chunks para evitar stack overflow
+        const bytes = new Uint8Array(buffer);
+        const CHUNK = 8192;
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+          binary += String.fromCharCode(...Array.from(bytes.subarray(i, i + CHUNK)));
         }
+        const base64 = btoa(binary);
+        await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+
         const canShare = await Sharing.isAvailableAsync();
         if (canShare) {
           await Sharing.shareAsync(uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });

@@ -132,6 +132,7 @@ export default function LoginScreen({ navigation }: Props) {
                 onChangeText={login.setPassword}
                 show={login.showPassword}
                 onToggleShow={login.toggleShowPassword}
+                onSubmitEditing={login.handleLogin}
               />
             </View>
           ))}

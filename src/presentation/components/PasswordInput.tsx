@@ -20,6 +20,8 @@ interface Props {
   inputStyle?: TextStyle;
   /** Estilo adicional opcional para el contenedor. */
   containerStyle?: ViewStyle;
+  /** Callback invocado al pulsar Enter/Intro en el teclado. */
+  onSubmitEditing?: () => void;
 }
 
 /**
@@ -44,6 +46,7 @@ export function PasswordInput({
   onToggleShow,
   inputStyle,
   containerStyle,
+  onSubmitEditing,
 }: Props) {
   return (
     <View style={[styles.row, containerStyle]}>
@@ -54,6 +57,8 @@ export function PasswordInput({
         value={value}
         onChangeText={onChangeText}
         secureTextEntry={!show}
+        onSubmitEditing={onSubmitEditing}
+        returnKeyType={onSubmitEditing ? 'go' : 'default'}
       />
       <Pressable onPress={onToggleShow} style={styles.eyeBtn}>
         <Ionicons

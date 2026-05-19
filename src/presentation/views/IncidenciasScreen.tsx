@@ -110,7 +110,7 @@ export default function IncidenciasScreen() {
               <Text style={[styles.typeText, { color: typeColor }]}>{item.tipo}</Text>
             </View>
             <Text style={styles.cardDate} numberOfLines={1}>
-              {item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES') : '—'}
+              {item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES', { timeZone: 'UTC' }) : '—'}
             </Text>
           </View>
           <Text style={styles.cardEndpoint} numberOfLines={1}>

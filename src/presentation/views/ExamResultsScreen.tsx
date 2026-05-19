@@ -168,7 +168,7 @@ export default function ExamResultsScreen() {
       getResultadosUseCase.execute(examenId).catch(() => null),
       getExamenByIdUseCase.execute(examenId)
         .then(async (examen) => ({
-          fechaCreacion: new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+          fechaCreacion: new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }),
           autorNombre: await getUsuarioByIdUseCase.execute(examen.autor_id)
             .then((u) => `${u.nombre_usuario} ${u.apellido_usuario}`)
             .catch(() => null),

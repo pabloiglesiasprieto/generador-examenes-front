@@ -237,7 +237,7 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
                 <View style={styles.adminInfoDivider} />
                 <Text style={styles.adminInfoItem}>
                   📅 <Text style={styles.adminInfoValue}>
-                    {new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' })}
+                    {new Date(examen.fecha_creacion).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </Text>
                 </Text>
               </View>

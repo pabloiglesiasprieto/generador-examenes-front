@@ -120,6 +120,10 @@ export function useUsersScreen(currentUserId: number | undefined) {
       if (hasRol) {
         await borrarRolUseCase.execute(selectedUser.id_usuario, rolId);
       } else {
+        // Revocar cualquier rol previo antes de asignar el nuevo
+        for (const rolActual of userRoles) {
+          await borrarRolUseCase.execute(selectedUser.id_usuario, rolActual.id_rol);
+        }
         await asignarRolUseCase.execute(selectedUser.id_usuario, rolId);
       }
       const roles = await getRolesByUsuarioUseCase.execute(selectedUser.id_usuario);

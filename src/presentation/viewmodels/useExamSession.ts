@@ -105,7 +105,7 @@ export function useExamSession(examen: ExamenDTO, isAdminMode = false) {
 
   const currentPregunta = preguntas[currentIndex];
   const totalPreguntas = preguntas.length;
-  const progress = (currentIndex + 1) / totalPreguntas;
+  const progress = totalPreguntas > 0 ? (currentIndex + 1) / totalPreguntas : 0;
   const isLast = currentIndex === totalPreguntas - 1;
   const currentSelected = answers.get(currentIndex) ?? new Set<number>();
   const hasAnswered = currentSelected.size > 0;

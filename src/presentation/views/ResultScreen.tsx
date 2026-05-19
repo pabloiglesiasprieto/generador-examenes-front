@@ -50,8 +50,9 @@ function getGrade(nota: number): { label: string; color: string; emoji: string }
  */
 export default function ResultScreen({ navigation, route }: Props) {
   const { resultado } = route.params;
-  const stars = getStars(resultado.nota);
-  const grade = getGrade(resultado.nota);
+  const nota = resultado.nota ?? 0;
+  const stars = getStars(nota);
+  const grade = getGrade(nota);
 
   const heroScale = useRef(new Animated.Value(0.7)).current;
   const heroOpacity = useRef(new Animated.Value(0)).current;
@@ -82,7 +83,7 @@ export default function ResultScreen({ navigation, route }: Props) {
           </View>
 
           <View style={[styles.scoreBadge, { borderColor: grade.color }]}>
-            <Text style={[styles.scoreNumber, { color: grade.color }]}>{resultado.nota.toFixed(1)}</Text>
+            <Text style={[styles.scoreNumber, { color: grade.color }]}>{nota.toFixed(1)}</Text>
             <Text style={styles.scoreLabel}>/10</Text>
           </View>
 

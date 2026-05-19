@@ -129,11 +129,11 @@ export default function ExamScreen({ navigation, route }: Readonly<Props>) {
   );
 
   useEffect(() => {
-    if (!isAdminMode) return;
+    if (!isAdminMode || !examen.autor_id) return;
     getUsuarioByIdUseCase.execute(examen.autor_id).then((u) => {
       setAutorNombre(`${u.nombre_usuario} ${u.apellido_usuario}`);
     }).catch(() => {
-      showAlert('Aviso', 'No se pudo cargar el nombre del autor');
+      // El nombre del autor es informativo; si falla, no interrumpir la demo
     });
   }, [examen.autor_id, isAdminMode]);
   const [quitModalVisible, setQuitModalVisible] = useState(false);

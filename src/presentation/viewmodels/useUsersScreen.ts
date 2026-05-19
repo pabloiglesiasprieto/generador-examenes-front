@@ -130,6 +130,13 @@ export function useUsersScreen(currentUserId: number | undefined) {
       setUserRoles(roles);
     } catch (err: unknown) {
       showAlert('Error', extractApiError(err, 'Error al modificar el rol'));
+      // Recargar roles reales para reflejar el estado actual del servidor
+      try {
+        const roles = await getRolesByUsuarioUseCase.execute(selectedUser.id_usuario);
+        setUserRoles(roles);
+      } catch {
+        // Si tampoco se pueden obtener los roles, se mantiene el estado anterior
+      }
     } finally {
       setRolLoading(false);
     }

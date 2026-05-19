@@ -197,23 +197,27 @@ export function useQuestionsScreen() {
   };
 
   const openEdit = async (p: PreguntaDTO) => {
-    const full = await getPreguntaByIdUseCase.execute(p.id);
-    setEditing(full);
-    setEnunciado(full.enunciado);
-    setEsMultiple(full.es_multiple);
-    setDificultad(full.dificultad ?? '');
-    setCategoria(full.categoria ?? '');
-    setRespuestas(
-      full.respuestas.map((r) => ({
-        _key: nextKey(),
-        texto: r.texto,
-        es_correcta:
-          full.respuestas_correctas?.includes(r.respuesta_id ?? r.id ?? -1) ??
-          r.es_correcta ??
-          false,
-      })),
-    );
-    setModalVisible(true);
+    try {
+      const full = await getPreguntaByIdUseCase.execute(p.id);
+      setEditing(full);
+      setEnunciado(full.enunciado);
+      setEsMultiple(full.es_multiple);
+      setDificultad(full.dificultad ?? '');
+      setCategoria(full.categoria ?? '');
+      setRespuestas(
+        full.respuestas.map((r) => ({
+          _key: nextKey(),
+          texto: r.texto,
+          es_correcta:
+            full.respuestas_correctas?.includes(r.respuesta_id ?? r.id ?? -1) ??
+            r.es_correcta ??
+            false,
+        })),
+      );
+      setModalVisible(true);
+    } catch (err: unknown) {
+      showAlert('Error', extractApiError(err, 'No se pudo cargar la pregunta'));
+    }
   };
 
   const closeModal = () => {

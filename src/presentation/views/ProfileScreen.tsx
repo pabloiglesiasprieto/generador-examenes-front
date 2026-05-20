@@ -192,8 +192,12 @@ export default function ProfileScreen({ navigation }: Props) {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onloadend = () => {
-            const dataUrl = reader.result as string;
-            resolve(dataUrl.split(',')[1]);
+            const result = reader.result as string;
+            if (!result) { reject(new Error('FileReader result vacío')); return; }
+            // En React Native el result puede venir con o sin el prefijo "data:...;base64,"
+            const base64 = result.includes(',') ? result.split(',')[1] : result;
+            if (!base64) { reject(new Error('base64 vacío')); return; }
+            resolve(base64);
           };
           reader.onerror = () => reject(new Error('FileReader falló'));
           reader.readAsDataURL(blob);

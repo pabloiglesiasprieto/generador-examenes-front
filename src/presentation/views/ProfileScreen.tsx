@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '../../data/apiconnection/apiClient';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '../navigation/AppNavigator';
@@ -171,32 +173,33 @@ export default function ProfileScreen({ navigation }: Props) {
 
   async function handleExport(formato: 'pdf' | 'excel') {
     try {
-      const buffer = await exportExamenesUseCase.execute(formato);
       const ext = formato === 'pdf' ? 'pdf' : 'xlsx';
       const mime = formato === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
       if (typeof document === 'undefined') {
-        // Nativo (iOS/Android)
+        // Nativo (iOS/Android): FileSystem.downloadAsync es más fiable que Axios arraybuffer en Android
+        const token = await AsyncStorage.getItem('token');
         const uri = `${FileSystem.cacheDirectory}examenes_export.${ext}`;
-
-        // Convertir ArrayBuffer → base64 en chunks para evitar stack overflow
-        const bytes = new Uint8Array(buffer);
-        const CHUNK = 8192;
-        let binary = '';
-        for (let i = 0; i < bytes.length; i += CHUNK) {
-          binary += String.fromCharCode(...Array.from(bytes.subarray(i, i + CHUNK)));
-        }
-        const base64 = btoa(binary);
-        await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
-
+        const result = await FileSystem.downloadAsync(
+          `${API_BASE_URL}/examenes/exportar?formato=${formato}`,
+          uri,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'bypass-tunnel-reminder': 'true',
+            },
+          },
+        );
+        if (result.status !== 200) throw new Error(`HTTP ${result.status}`);
         const canShare = await Sharing.isAvailableAsync();
         if (canShare) {
-          await Sharing.shareAsync(uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });
+          await Sharing.shareAsync(result.uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });
         } else {
-          showAlert('Archivo generado', `Guardado en: ${uri}`);
+          showAlert('Archivo generado', `Guardado en: ${result.uri}`);
         }
       } else {
         // Web: descarga directa vía <a>
+        const buffer = await exportExamenesUseCase.execute(formato);
         const blob = new Blob([buffer], { type: mime });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

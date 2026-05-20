@@ -177,26 +177,31 @@ export default function ProfileScreen({ navigation }: Props) {
       const mime = formato === 'pdf' ? 'application/pdf' : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
       if (typeof document === 'undefined') {
-        // Nativo (iOS/Android): FileSystem.downloadAsync es más fiable que Axios arraybuffer en Android
+        // Nativo (iOS/Android): fetch nativo + FileReader es el enfoque más fiable en Android
         const token = await AsyncStorage.getItem('token');
-        const uri = `${FileSystem.cacheDirectory}examenes_export.${ext}`;
-        const result = await FileSystem.downloadAsync(
-          `${API_BASE_URL}/examenes/exportar?formato=${formato}`,
-          uri,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'bypass-tunnel-reminder': 'true',
-            },
+        const response = await fetch(`${API_BASE_URL}/examenes/exportar?formato=${formato}`, {
+          headers: {
+            Authorization: `Bearer ${token ?? ''}`,
+            'bypass-tunnel-reminder': 'true',
+            Accept: mime,
           },
-        );
-        if (result.status !== 200) throw new Error(`HTTP ${result.status}`);
-        const canShare = await Sharing.isAvailableAsync();
-        if (canShare) {
-          await Sharing.shareAsync(result.uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });
-        } else {
-          showAlert('Archivo generado', `Guardado en: ${result.uri}`);
-        }
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const blob = await response.blob();
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            resolve(dataUrl.split(',')[1]);
+          };
+          reader.onerror = () => reject(new Error('FileReader falló'));
+          reader.readAsDataURL(blob);
+        });
+
+        const uri = `${FileSystem.cacheDirectory}examenes_export.${ext}`;
+        await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+        await Sharing.shareAsync(uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });
       } else {
         // Web: descarga directa vía <a>
         const buffer = await exportExamenesUseCase.execute(formato);
@@ -208,8 +213,8 @@ export default function ProfileScreen({ navigation }: Props) {
         a.click();
         URL.revokeObjectURL(url);
       }
-    } catch {
-      showAlert('Error', `No se pudo exportar el archivo ${formato.toUpperCase()}.`);
+    } catch (err) {
+      showAlert('Error exportando', err instanceof Error ? err.message : String(err));
     }
   }
 

@@ -204,7 +204,7 @@ export default function ProfileScreen({ navigation }: Props) {
         });
 
         const uri = `${FileSystem.cacheDirectory}examenes_export.${ext}`;
-        await FileSystem.writeAsStringAsync(uri, base64, { encoding: FileSystem.EncodingType.Base64 });
+        await FileSystem.writeAsStringAsync(uri, base64, { encoding: 'base64' });
         await Sharing.shareAsync(uri, { mimeType: mime, dialogTitle: `Exportar exámenes ${formato.toUpperCase()}` });
       } else {
         // Web: descarga directa vía <a>

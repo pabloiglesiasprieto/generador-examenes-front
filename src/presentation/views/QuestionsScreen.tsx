@@ -20,7 +20,7 @@ import { useQuestionsScreen } from '../viewmodels/useQuestionsScreen';
 import { JsonValidationError } from '../utils/validatePreguntasJson';
 import { PreguntaDTO, RespuestaInput } from '../../domain/entities/Pregunta';
 import * as XLSX from 'xlsx';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { HEADER_TOP } from '../utils/responsive';
 

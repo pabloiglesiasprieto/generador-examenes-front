@@ -31,11 +31,11 @@
     "plugins": [
       "expo-font"
     ],
+    "owner": "pablopatata",
     "extra": {
       "eas": {
-        "projectId": "b56c7eca-6fc3-4481-919f-6071e459055d"
+        "projectId": "b8223e00-1cbe-4669-9e5d-8ea839d3e4ff"
       }
-    },
-    "owner": "pabloiglesiasprieto"
+    }
   }
 }
